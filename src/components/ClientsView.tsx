@@ -202,7 +202,7 @@ function NewClientModal({ workspace, onClose, onSave }: {
   ];
 
   const [quantities, setQuantities] = useState<Record<string, number>>({});
-  const [extras, setExtras] = useState<{ id: string, name: string, qty: number, recurring: boolean }[]>([]);
+  const [extras, setExtras] = useState<{ id: string, name: string, qty: number, recurring: boolean, urgency: "urgent" | "today" | "whenever" }[]>([]);
 
   const updateQty = (key: string, delta: number) => {
     setQuantities(prev => {
@@ -222,7 +222,11 @@ function NewClientModal({ workspace, onClose, onSave }: {
   };
 
   const addExtra = () => {
-    setExtras(prev => [...prev, { id: Math.random().toString(), name: "", qty: 1, recurring: true }]);
+    setExtras(prev => [...prev, { id: Math.random().toString(), name: "", qty: 1, recurring: true, urgency: "whenever" }]);
+  };
+
+  const updateExtraUrgency = (id: string, urgency: "urgent" | "today" | "whenever") => {
+    setExtras(prev => prev.map(e => e.id === id ? { ...e, urgency } : e));
   };
 
   const toggleExtraRecurring = (id: string) => {
@@ -232,6 +236,12 @@ function NewClientModal({ workspace, onClose, onSave }: {
   const updateExtraName = (id: string, newName: string) => {
     setExtras(prev => prev.map(e => e.id === id ? { ...e, name: newName } : e));
   };
+
+  const urgencyOptions: { value: "urgent" | "today" | "whenever"; label: string }[] = [
+    { value: "urgent",   label: "🔴" },
+    { value: "today",    label: "🟡" },
+    { value: "whenever", label: "🟢" },
+  ];
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -249,12 +259,14 @@ function NewClientModal({ workspace, onClose, onSave }: {
 
     extras.forEach(extra => {
       if (!extra.name.trim() || extra.qty <= 0) return;
+      const prefix = extra.urgency === "urgent" ? "[URGENTE] " : extra.urgency === "today" ? "[HOJE] " : "";
       if (extra.recurring) {
         for (let i = 0; i < extra.qty; i++) {
-          taskTemplate.push(extra.qty > 1 ? `${extra.name.trim()} (${i + 1}/${extra.qty})` : extra.name.trim());
+          const name = extra.qty > 1 ? `${extra.name.trim()} (${i + 1}/${extra.qty})` : extra.name.trim();
+          taskTemplate.push(`${prefix}${name}`);
         }
       } else {
-        taskTemplate.push(`[ÚNICA] ${extra.name.trim()}`);
+        taskTemplate.push(`[ÚNICA] ${prefix}${extra.name.trim()}`);
       }
     });
 
@@ -322,17 +334,38 @@ function NewClientModal({ workspace, onClose, onSave }: {
                     <button type="button" onClick={() => updateExtraQty(extra.id, 1)} className="w-7 h-7 flex items-center justify-center rounded-md bg-background border hover:bg-muted text-muted-foreground">+</button>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 pl-1">
-                  <button
-                    type="button"
-                    onClick={() => toggleExtraRecurring(extra.id)}
-                    className={`relative w-9 h-5 rounded-full transition-colors flex-shrink-0 overflow-hidden ${extra.recurring ? "bg-primary" : "bg-muted-foreground/30"}`}
-                  >
-                    <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${extra.recurring ? "translate-x-4" : "translate-x-0"}`} />
-                  </button>
-                  <span className={`text-xs ${extra.recurring ? "text-primary font-medium" : "text-muted-foreground"}`}>
-                    {extra.recurring ? "Recorrente (todo ciclo)" : "Única (1º ciclo apenas)"}
-                  </span>
+                <div className="flex items-center justify-between gap-2 pl-1">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => toggleExtraRecurring(extra.id)}
+                      className={`relative w-9 h-5 rounded-full transition-colors flex-shrink-0 overflow-hidden ${extra.recurring ? "bg-primary" : "bg-muted-foreground/30"}`}
+                    >
+                      <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${extra.recurring ? "translate-x-4" : "translate-x-0"}`} />
+                    </button>
+                    <span className={`text-xs ${extra.recurring ? "text-primary font-medium" : "text-muted-foreground"}`}>
+                      {extra.recurring ? "Recorrente" : "Única"}
+                    </span>
+                  </div>
+
+                  <div className="flex gap-1">
+                    {urgencyOptions.map(opt => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => updateExtraUrgency(extra.id, opt.value)}
+                        className={cn(
+                          "w-7 h-7 flex items-center justify-center rounded-lg border transition-all text-[10px]",
+                          extra.urgency === opt.value
+                            ? "border-primary bg-primary/10"
+                            : "border-transparent hover:bg-muted"
+                        )}
+                        title={opt.value}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             ))}

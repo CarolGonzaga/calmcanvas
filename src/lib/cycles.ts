@@ -76,7 +76,26 @@ export function ensureCycle(client: Client, ref: Date = new Date()): Cycle {
     store.setCycles(cycles);
     // generate tasks from template
     const tasks = store.getTasks();
-    for (const name of client.taskTemplate) {
+    for (let name of client.taskTemplate) {
+      // 1. Check if it's a [ÚNICA] task
+      const isUnique = name.includes("[ÚNICA]");
+      if (isUnique) {
+        // Only create if it's the very first cycle (index 1)
+        if (index > 1) continue;
+        // Strip [ÚNICA] from name
+        name = name.replace("[ÚNICA]", "").trim();
+      }
+
+      // 2. Check for urgency prefixes
+      let urgency: Task["urgency"] = "whenever";
+      if (name.includes("[URGENTE]")) {
+        urgency = "urgent";
+        name = name.replace("[URGENTE]", "").trim();
+      } else if (name.includes("[HOJE]")) {
+        urgency = "today";
+        name = name.replace("[HOJE]", "").trim();
+      }
+
       tasks.push({
         id: uid(),
         cycleId: cycle.id,
@@ -84,6 +103,7 @@ export function ensureCycle(client: Client, ref: Date = new Date()): Cycle {
         workspace: client.workspace,
         name,
         status: "todo",
+        urgency,
         createdAt: new Date().toISOString(),
       });
     }
@@ -95,6 +115,7 @@ export function ensureCycle(client: Client, ref: Date = new Date()): Cycle {
       workspace: client.workspace,
       name: `Enviar relatório mensal`,
       status: "todo",
+      urgency: "urgent", // Reports are always urgent
       dueDate: endISO,
       isReport: true,
       createdAt: new Date().toISOString(),

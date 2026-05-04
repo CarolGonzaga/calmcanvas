@@ -1,5 +1,5 @@
 import { Task } from "@/lib/types";
-import { Check } from "lucide-react";
+import { Check, Pencil, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { fmtDate, todayISO } from "@/lib/cycles";
 import { useState } from "react";
@@ -23,6 +23,7 @@ const urgencyCycle: Array<Task["urgency"]> = ["urgent", "today", "whenever"];
 
 export function TaskItem({ task, clientName, onToggle, showClient }: Props) {
   const [justChecked, setJustChecked] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const { updateTask } = useFocoData();
   const overdue = task.status !== "done" && task.dueDate && task.dueDate < todayISO();
   const done = task.status === "done";
@@ -43,58 +44,165 @@ export function TaskItem({ task, clientName, onToggle, showClient }: Props) {
   const uc = urgencyConfig[urgency];
 
   return (
-    <div
-      className={cn(
-        "group flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-300",
-        done
-          ? "bg-muted/40 border-transparent"
-          : overdue
-          ? "bg-card border-warning/40"
-          : "bg-card border-border/60 hover:border-primary/40 hover:shadow-[var(--shadow-soft)]"
-      )}
-    >
-      <button
-        onClick={handle}
+    <>
+      <div
         className={cn(
-          "w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
+          "group flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-300",
           done
-            ? "bg-success border-success text-success-foreground"
-            : "border-muted-foreground/30 hover:border-primary"
+            ? "bg-muted/40 border-transparent"
+            : overdue
+            ? "bg-card border-warning/40"
+            : "bg-card border-border/60 hover:border-primary/40 hover:shadow-[var(--shadow-soft)]"
         )}
-        aria-label={done ? "Desmarcar" : "Marcar como concluída"}
       >
-        {done && <Check className={cn("w-3.5 h-3.5", justChecked && "animate-check")} strokeWidth={3} />}
-      </button>
+        <button
+          onClick={handle}
+          className={cn(
+            "w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
+            done
+              ? "bg-success border-success text-success-foreground"
+              : "border-muted-foreground/30 hover:border-primary"
+          )}
+          aria-label={done ? "Desmarcar" : "Marcar como concluída"}
+        >
+          {done && <Check className={cn("w-3.5 h-3.5", justChecked && "animate-check")} strokeWidth={3} />}
+        </button>
 
-      <div className="flex-1 min-w-0">
-        <div className={cn("text-sm font-medium truncate", done && "line-through text-muted-foreground")}>
-          {task.isReport && "📋 "}{task.name}
-        </div>
-        {(showClient && clientName) || task.dueDate ? (
-          <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
-            {showClient && clientName && <span>{clientName}</span>}
-            {showClient && clientName && task.dueDate && <span>·</span>}
-            {task.dueDate && (
-              <span className={cn(overdue && "text-warning-foreground font-medium")}>
-                {overdue ? "esperando desde " : "para "}{fmtDate(task.dueDate)}
-              </span>
-            )}
+        <div className="flex-1 min-w-0">
+          <div className={cn("text-sm font-medium truncate", done && "line-through text-muted-foreground")}>
+            {task.isReport && "📋 "}{task.name}
           </div>
-        ) : null}
+          {(showClient && clientName) || task.dueDate ? (
+            <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
+              {showClient && clientName && <span>{clientName}</span>}
+              {showClient && clientName && task.dueDate && <span>·</span>}
+              {task.dueDate && (
+                <span className={cn(overdue && "text-warning-foreground font-medium")}>
+                  {overdue ? "esperando desde " : "para "}{fmtDate(task.dueDate)}
+                </span>
+              )}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="flex items-center gap-2">
+          {!done && (
+            <>
+              <button
+                onClick={cycleUrgency}
+                title="Clique para mudar urgência"
+                className={cn(
+                  "shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full transition-all",
+                  uc.bg, uc.text
+                )}
+              >
+                {uc.label}
+              </button>
+              <button
+                onClick={() => setIsEditing(true)}
+                className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted text-muted-foreground"
+                title="Editar tarefa"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
-      {!done && (
-        <button
-          onClick={cycleUrgency}
-          title="Clique para mudar urgência"
-          className={cn(
-            "shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full transition-all",
-            uc.bg, uc.text
-          )}
-        >
-          {uc.label}
-        </button>
+      {isEditing && (
+        <EditTaskModal
+          task={task}
+          onClose={() => setIsEditing(false)}
+          onSave={(data) => {
+            updateTask(task.id, data);
+            setIsEditing(false);
+          }}
+        />
       )}
+    </>
+  );
+}
+
+function EditTaskModal({ task, onClose, onSave }: {
+  task: Task;
+  onClose: () => void;
+  onSave: (data: Partial<Task>) => void;
+}) {
+  const [name, setName] = useState(task.name);
+  const [dueDate, setDueDate] = useState(task.dueDate || "");
+  const [urgency, setUrgency] = useState<Task["urgency"]>(task.urgency || "whenever");
+
+  const urgencyOptions: { value: "urgent" | "today" | "whenever"; label: string }[] = [
+    { value: "urgent",   label: "🔴 Urgente"   },
+    { value: "today",    label: "🟡 Pra hoje"  },
+    { value: "whenever", label: "🟢 Sem pressa" },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-[60] bg-foreground/20 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-card rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 animate-fade-up">
+        <div className="flex items-center justify-between">
+          <h3 className="font-display text-xl">Editar Tarefa</h3>
+          <button onClick={onClose} className="p-1 hover:bg-muted rounded-lg">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <label className="block">
+            <span className="text-sm font-medium">Nome da tarefa</span>
+            <input
+              value={name}
+              onChange={e => setName(e.target.value)}
+              className="mt-1 w-full px-4 py-2.5 rounded-xl bg-background border border-border focus:border-primary focus:outline-none"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-medium">Prazo</span>
+            <input
+              type="date"
+              value={dueDate}
+              onChange={e => setDueDate(e.target.value)}
+              className="mt-1 w-full px-4 py-2.5 rounded-xl bg-background border border-border focus:border-primary focus:outline-none"
+            />
+          </label>
+
+          <div className="block">
+            <span className="text-sm font-medium mb-2 block">Urgência</span>
+            <div className="flex gap-2">
+              {urgencyOptions.map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setUrgency(opt.value)}
+                  className={cn(
+                    "flex-1 text-xs px-2 py-2 rounded-xl border transition-all text-center",
+                    urgency === opt.value
+                      ? "border-primary bg-primary/10 text-primary font-semibold"
+                      : "border-border text-muted-foreground hover:border-muted-foreground"
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2 pt-2">
+          <button onClick={onClose} className="px-4 py-2.5 rounded-xl text-muted-foreground hover:bg-muted">
+            Cancelar
+          </button>
+          <button
+            onClick={() => onSave({ name, dueDate: dueDate || undefined, urgency })}
+            className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            Salvar
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

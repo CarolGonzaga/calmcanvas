@@ -3,7 +3,7 @@ import { useFocoData } from "@/hooks/useFocoData";
 import { Workspace } from "@/lib/types";
 import { ensureCycle, clientProgress, fmtDate, fmtDateLong, todayISO } from "@/lib/cycles";
 import { TaskItem } from "./TaskItem";
-import { Plus, Trash2, ChevronDown, ChevronRight, X, Cloud, Loader2, UploadCloud, FileText, File } from "lucide-react";
+import { Plus, Trash2, ChevronDown, ChevronRight, X, Cloud, CloudOff, Loader2, UploadCloud, FileText, File } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGoogleDrive } from "@/hooks/useGoogleDrive";
 import { toast } from "sonner";

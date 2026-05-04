@@ -23,8 +23,6 @@ export function CalendarView({ workspace }: { workspace: Workspace }) {
   const wsClients = clients.filter(c => c.workspace === workspace);
   // cycle boundaries for current view
   const wsCycles = cycles.filter(c => wsClients.some(cl => cl.id === c.clientId));
-  // ensure cycles for these clients exist for current view
-  wsClients.forEach(c => ensureCycle(c, ref));
 
   const eventsForDate = (d: Date) => {
     const iso = d.toISOString().slice(0, 10);

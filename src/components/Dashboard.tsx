@@ -7,9 +7,7 @@ import { Workspace } from "@/lib/types";
 const greetings = ["Oi 💛", "Olá!", "Bom te ver", "Que bom te ver"];
 
 export function Dashboard({ workspace }: { workspace: Workspace }) {
-  const { clients, tasks, toggleTask, syncAllCycles } = useFocoData();
-  // ensure cycles are up to date
-  syncAllCycles();
+  const { clients, tasks, toggleTask } = useFocoData();
 
   const filterWs = (t: any) => t.workspace === workspace;
   const today = getTodayTasks().filter(filterWs);

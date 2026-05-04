@@ -3,7 +3,7 @@ import { useFocoData } from "@/hooks/useFocoData";
 import { Workspace } from "@/lib/types";
 import { ensureCycle, clientProgress, fmtDate, fmtDateLong, todayISO } from "@/lib/cycles";
 import { TaskItem } from "./TaskItem";
-import { Plus, Trash2, ChevronDown, ChevronRight, X, Cloud, CloudOff, Loader2, UploadCloud, FileText, File } from "lucide-react";
+import { Plus, Trash2, ChevronDown, ChevronRight, X, Cloud, CloudOff, Loader2, UploadCloud, FileText, File, Copy, Eraser, Settings, ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGoogleDrive } from "@/hooks/useGoogleDrive";
 import { toast } from "sonner";
@@ -423,11 +423,26 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
   }, [client.notes]);
 
   useEffect(() => {
-    if (!tabs[activeTab]) {
+    if (!(activeTab in tabs)) {
       const keys = Object.keys(tabs);
       if (keys.length > 0) setActiveTab(keys[0]);
     }
   }, [tabs, activeTab]);
+
+  const [manageTabsOpen, setManageTabsOpen] = useState(false);
+
+  const copyText = () => {
+    const text = tabs[activeTab] || "";
+    navigator.clipboard.writeText(text);
+    toast.success("Texto copiado!");
+  };
+
+  const clearText = () => {
+    if (!confirm(`Limpar todo o texto da guia '${activeTab}'?`)) return;
+    const newTabs = { ...tabs, [activeTab]: "" };
+    setTabs(newTabs);
+    onUpdate(JSON.stringify(newTabs));
+  };
 
   useEffect(() => {
     if (driveService && appFolderId) {
@@ -509,6 +524,7 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
           {Object.keys(tabs).map(tab => (
             <button
               key={tab}
+              type="button"
               onClick={() => setActiveTab(tab)}
               className={cn(
                 "px-3 py-1.5 text-xs font-medium rounded-lg transition-colors border",
@@ -536,6 +552,7 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
             </form>
           ) : (
             <button
+              type="button"
               onClick={() => setIsAddingTab(true)}
               className="w-7 h-7 flex items-center justify-center rounded-lg border border-dashed border-border text-muted-foreground hover:bg-primary hover:text-primary hover:border-primary transition-colors"
               title="Nova guia"
@@ -543,6 +560,15 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
               <Plus className="w-3.5 h-3.5" />
             </button>
           )}
+
+          <button
+            type="button"
+            onClick={() => setManageTabsOpen(true)}
+            className="ml-auto w-7 h-7 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-muted transition-colors"
+            title="Gerenciar guias"
+          >
+            <Settings className="w-3.5 h-3.5" />
+          </button>
         </div>
 
         {/* Textarea: increased height and leading-relaxed for spacing */}
@@ -568,8 +594,40 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
           >
             <Plus className="w-4 h-4" />
           </button>
+          <div className="w-px bg-border/60 mx-1 my-1" />
+          <button
+            type="button"
+            onClick={copyText}
+            title="Copiar texto"
+            className="px-3 py-2 rounded-xl border border-border text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+          >
+            <Copy className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={clearText}
+            title="Limpar guia atual"
+            className="px-3 py-2 rounded-xl border border-border text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+          >
+            <Eraser className="w-4 h-4" />
+          </button>
         </div>
       </div>
+
+      {manageTabsOpen && (
+        <ManageTabsModal
+          tabs={tabs}
+          onClose={() => setManageTabsOpen(false)}
+          onSave={(newTabs) => {
+            setTabs(newTabs);
+            onUpdate(JSON.stringify(newTabs));
+            setManageTabsOpen(false);
+            if (!(activeTab in newTabs)) {
+              setActiveTab(Object.keys(newTabs)[0]);
+            }
+          }}
+        />
+      )}
 
       {/* Arquivos do Drive — só aparece se conectado */}
       {driveService ? (
@@ -624,6 +682,99 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
           Conecte ao Google Drive para enviar arquivos.
         </p>
       )}
+    </div>
+  );
+}
+
+function ManageTabsModal({ tabs, onClose, onSave }: {
+  tabs: Record<string, string>;
+  onClose: () => void;
+  onSave: (newTabs: Record<string, string>) => void;
+}) {
+  const [tabList, setTabList] = useState(
+    Object.keys(tabs).map(k => ({ id: Math.random().toString(), name: k, content: tabs[k] }))
+  );
+
+  const moveUp = (idx: number) => {
+    if (idx === 0) return;
+    const nl = [...tabList];
+    [nl[idx - 1], nl[idx]] = [nl[idx], nl[idx - 1]];
+    setTabList(nl);
+  };
+
+  const moveDown = (idx: number) => {
+    if (idx === tabList.length - 1) return;
+    const nl = [...tabList];
+    [nl[idx], nl[idx + 1]] = [nl[idx + 1], nl[idx]];
+    setTabList(nl);
+  };
+
+  const removeTab = (idx: number) => {
+    if (tabList.length === 1) {
+      toast.error("Você precisa ter pelo menos uma guia.");
+      return;
+    }
+    if (confirm(`Excluir a guia '${tabList[idx].name}' e todo seu conteúdo?`)) {
+      setTabList(tabList.filter((_, i) => i !== idx));
+    }
+  };
+
+  const updateName = (idx: number, newName: string) => {
+    const nl = [...tabList];
+    nl[idx].name = newName;
+    setTabList(nl);
+  };
+
+  const handleSave = () => {
+    const names = tabList.map(t => t.name.trim()).filter(Boolean);
+    if (new Set(names).size !== names.length) {
+      toast.error("Nomes de guias não podem ser duplicados ou vazios.");
+      return;
+    }
+    if (names.length !== tabList.length) {
+      toast.error("Nomes não podem ser vazios.");
+      return;
+    }
+    
+    const newTabs: Record<string, string> = {};
+    for (const t of tabList) {
+      newTabs[t.name.trim()] = t.content;
+    }
+    onSave(newTabs);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] bg-foreground/20 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-card rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4 animate-fade-up">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-display text-xl">Gerenciar Guias</h3>
+          <button onClick={onClose} className="p-1 hover:bg-muted rounded-lg">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+          {tabList.map((t, idx) => (
+            <div key={t.id} className="flex items-center gap-2 bg-background border border-border p-2 rounded-xl">
+              <input
+                value={t.name}
+                onChange={e => updateName(idx, e.target.value)}
+                className="flex-1 bg-transparent text-sm font-medium focus:outline-none px-1"
+              />
+              <div className="flex items-center gap-1">
+                <button type="button" onClick={() => moveUp(idx)} className="p-1.5 rounded hover:bg-muted text-muted-foreground"><ArrowUp className="w-3.5 h-3.5" /></button>
+                <button type="button" onClick={() => moveDown(idx)} className="p-1.5 rounded hover:bg-muted text-muted-foreground"><ArrowDown className="w-3.5 h-3.5" /></button>
+                <button type="button" onClick={() => removeTab(idx)} className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive"><Trash2 className="w-3.5 h-3.5" /></button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-end gap-2 pt-2 mt-4">
+          <button onClick={onClose} className="px-4 py-2.5 rounded-xl text-muted-foreground hover:bg-muted text-sm">Cancelar</button>
+          <button onClick={handleSave} className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium">Salvar</button>
+        </div>
+      </div>
     </div>
   );
 }

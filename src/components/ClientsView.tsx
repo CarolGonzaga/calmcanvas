@@ -82,7 +82,10 @@ export function ClientsView({ workspace }: { workspace: Workspace }) {
                       </button>
                     </div>
                   ))}
-                  <QuickAddTask onAdd={(name) => addTask({ name, clientId: c.id, cycleId: cycle.id, workspace: c.workspace })} />
+                  <QuickAddTask
+                    cycleEnd={cycle.end}
+                    onAdd={(data) => addTask({ ...data, clientId: c.id, cycleId: cycle.id, workspace: c.workspace })}
+                  />
 
                   <div className="pt-3 mt-3 border-t border-border/60 flex items-center justify-between text-xs text-muted-foreground">
                     <span>Início do contrato: {fmtDateLong(c.startDate)}</span>

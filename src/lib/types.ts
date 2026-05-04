@@ -6,6 +6,7 @@ export interface Client {
   id: string;
   name: string;
   startDate: string; // ISO date
+  endDate?: string; // ISO date
   taskTemplate: string[]; // names of recurring tasks
   reportDayOffset?: number; // days before cycle end to remind report (default 0 = last day)
   color?: string;

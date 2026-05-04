@@ -114,7 +114,7 @@ export function Dashboard({ workspace }: { workspace: Workspace }) {
       {/* Client progress */}
       {wsClients.length > 0 && (
         <section>
-          <h2 className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-medium">Progresso por cliente</h2>
+          <h2 className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-medium">Progresso por projeto</h2>
           <div className="grid sm:grid-cols-2 gap-3">
             {wsClients.map(c => {
               const cycle = ensureCycle(c);

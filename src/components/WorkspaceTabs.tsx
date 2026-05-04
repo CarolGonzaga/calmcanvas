@@ -8,7 +8,7 @@ interface Props {
 }
 
 const items: { id: Workspace; label: string; icon: any; sub: string }[] = [
-  { id: "saficos", label: "Lendo Sáficos", icon: BookHeart, sub: "clientes & ciclos" },
+  { id: "saficos", label: "Lendo Sáficos", icon: BookHeart, sub: "projetos & ciclos" },
   { id: "mariana", label: "Trabalho com Mariana", icon: Users, sub: "equipe" },
   { id: "publique", label: "Publique", icon: Sparkles, sub: "notas livres" },
 ];

@@ -35,7 +35,7 @@ export function ClientsView({ workspace }: { workspace: Workspace }) {
 
       {wsClients.length === 0 && (
         <div className="soft-card p-10 text-center bg-gradient-soft">
-          <p className="text-muted-foreground">Nenhum cliente ainda. Que tal começar pelo primeiro?</p>
+          <p className="text-muted-foreground">Nenhum projeto ainda. Que tal começar pelo primeiro?</p>
         </div>
       )}
 
@@ -101,7 +101,7 @@ export function ClientsView({ workspace }: { workspace: Workspace }) {
                       onClick={() => { if (confirm(`Remover ${c.name}?`)) removeClient(c.id); }}
                       className="hover:text-destructive transition-colors flex items-center gap-1"
                     >
-                      <Trash2 className="w-3.5 h-3.5" /> Remover cliente
+                      <Trash2 className="w-3.5 h-3.5" /> Remover projeto
                     </button>
                   </div>
                 </div>

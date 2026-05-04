@@ -22,13 +22,13 @@ export function ReportsView({ workspace }: { workspace: Workspace }) {
       <div>
         <h1 className="font-display text-3xl">Relatórios</h1>
         <p className="text-muted-foreground text-sm mt-1">
-          Um resumo gentil dos relatórios mensais por cliente.
+          Um resumo gentil dos relatórios mensais por projeto.
         </p>
       </div>
 
-      {items.length === 0 && (
-        <div className="soft-card p-10 text-center text-muted-foreground bg-gradient-soft">
-          Sem clientes cadastrados ainda.
+      {clients.length === 0 && (
+        <div className="soft-card p-12 text-center text-muted-foreground bg-gradient-soft">
+          Sem projetos cadastrados ainda.
         </div>
       )}
 

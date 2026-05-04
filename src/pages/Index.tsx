@@ -131,7 +131,7 @@ const Index = () => {
       </main>
 
       <footer className="container pb-10 text-center text-xs text-muted-foreground">
-        Feito com 💛 para mentes que sentem muito.
+        Feito com ❤️ para minha namorada mais linda.
       </footer>
     </div>
   );

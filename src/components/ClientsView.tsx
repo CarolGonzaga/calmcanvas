@@ -176,7 +176,7 @@ function NewClientModal({ workspace, onClose, onSave }: {
   ];
 
   const [quantities, setQuantities] = useState<Record<string, number>>({});
-  const [extras, setExtras] = useState<{id: string, name: string, qty: number}[]>([]);
+  const [extras, setExtras] = useState<{id: string, name: string, qty: number, recurring: boolean}[]>([]);
 
   const updateQty = (key: string, delta: number) => {
     setQuantities(prev => {
@@ -196,7 +196,11 @@ function NewClientModal({ workspace, onClose, onSave }: {
   };
 
   const addExtra = () => {
-    setExtras(prev => [...prev, { id: Math.random().toString(), name: "", qty: 1 }]);
+    setExtras(prev => [...prev, { id: Math.random().toString(), name: "", qty: 1, recurring: true }]);
+  };
+
+  const toggleExtraRecurring = (id: string) => {
+    setExtras(prev => prev.map(e => e.id === id ? { ...e, recurring: !e.recurring } : e));
   };
 
   const updateExtraName = (id: string, newName: string) => {
@@ -208,18 +212,23 @@ function NewClientModal({ workspace, onClose, onSave }: {
     
     const taskTemplate: string[] = [];
     
-    optionsList.forEach(opt => {
-      const qty = quantities[opt] || 0;
-      for (let i = 0; i < qty; i++) {
-        taskTemplate.push(qty > 1 ? `${opt} (${i+1}/${qty})` : opt);
-      }
-    });
-    
+    if (workspace === "saficos") {
+      optionsList.forEach(opt => {
+        const qty = quantities[opt] || 0;
+        for (let i = 0; i < qty; i++) {
+          taskTemplate.push(qty > 1 ? `${opt} (${i+1}/${qty})` : opt);
+        }
+      });
+    }
+
     extras.forEach(extra => {
-      if (extra.name.trim() && extra.qty > 0) {
+      if (!extra.name.trim() || extra.qty <= 0) return;
+      if (extra.recurring) {
         for (let i = 0; i < extra.qty; i++) {
           taskTemplate.push(extra.qty > 1 ? `${extra.name.trim()} (${i+1}/${extra.qty})` : extra.name.trim());
         }
+      } else {
+        taskTemplate.push(`[once] ${extra.name.trim()}`);
       }
     });
 
@@ -257,9 +266,11 @@ function NewClientModal({ workspace, onClose, onSave }: {
         </label>
 
         <div className="block">
-          <span className="text-sm font-medium mb-2 block">Itens do Kit (Tarefas recorrentes)</span>
+          <span className="text-sm font-medium mb-2 block">
+            {workspace === "saficos" ? "Itens do Kit (Tarefas recorrentes)" : "Tarefas recorrentes"}
+          </span>
           <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
-            {optionsList.map(opt => (
+            {workspace === "saficos" && optionsList.map(opt => (
               <div key={opt} className="flex items-center justify-between bg-muted/30 p-2 rounded-lg">
                 <span className="text-sm">{opt}</span>
                 <div className="flex items-center gap-3">
@@ -269,30 +280,44 @@ function NewClientModal({ workspace, onClose, onSave }: {
                 </div>
               </div>
             ))}
-            
+
             {extras.map(extra => (
-              <div key={extra.id} className="flex items-center justify-between gap-2 bg-muted/30 p-2 rounded-lg">
-                <input 
-                  value={extra.name} 
-                  onChange={e => updateExtraName(extra.id, e.target.value)}
-                  placeholder="Nome do extra..."
-                  className="flex-1 px-3 py-1 text-sm rounded-md border border-border bg-background focus:outline-none focus:border-primary"
-                />
-                <div className="flex items-center gap-3">
-                  <button type="button" onClick={() => updateExtraQty(extra.id, -1)} className="w-7 h-7 flex items-center justify-center rounded-md bg-background border hover:bg-muted text-muted-foreground">-</button>
-                  <span className="text-sm w-4 text-center">{extra.qty}</span>
-                  <button type="button" onClick={() => updateExtraQty(extra.id, 1)} className="w-7 h-7 flex items-center justify-center rounded-md bg-background border hover:bg-muted text-muted-foreground">+</button>
+              <div key={extra.id} className="flex flex-col gap-2 bg-muted/30 p-2 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <input
+                    value={extra.name}
+                    onChange={e => updateExtraName(extra.id, e.target.value)}
+                    placeholder="Nome da tarefa extra..."
+                    className="flex-1 px-3 py-1 text-sm rounded-md border border-border bg-background focus:outline-none focus:border-primary"
+                  />
+                  <div className="flex items-center gap-2">
+                    <button type="button" onClick={() => updateExtraQty(extra.id, -1)} className="w-7 h-7 flex items-center justify-center rounded-md bg-background border hover:bg-muted text-muted-foreground">-</button>
+                    <span className="text-sm w-4 text-center">{extra.qty}</span>
+                    <button type="button" onClick={() => updateExtraQty(extra.id, 1)} className="w-7 h-7 flex items-center justify-center rounded-md bg-background border hover:bg-muted text-muted-foreground">+</button>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 pl-1">
+                  <button
+                    type="button"
+                    onClick={() => toggleExtraRecurring(extra.id)}
+                    className={`relative w-8 h-4 rounded-full transition-colors flex-shrink-0 ${extra.recurring ? "bg-primary" : "bg-muted-foreground/30"}`}
+                  >
+                    <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-transform ${extra.recurring ? "translate-x-4" : "translate-x-0.5"}`} />
+                  </button>
+                  <span className={`text-xs ${extra.recurring ? "text-primary font-medium" : "text-muted-foreground"}`}>
+                    {extra.recurring ? "Recorrente (todo ciclo)" : "Única (1º ciclo apenas)"}
+                  </span>
                 </div>
               </div>
             ))}
           </div>
-          
+
           <button type="button" onClick={addExtra} className="mt-3 flex items-center gap-2 text-sm text-primary hover:underline">
-            <Plus className="w-4 h-4" /> Adicionar extra
+            <Plus className="w-4 h-4" /> Adicionar tarefa extra
           </button>
-          
+
           <span className="text-xs text-muted-foreground mt-2 block">
-            Os itens selecionados serão recriados a cada novo ciclo do projeto.
+            Tarefas recorrentes são recriadas a cada ciclo. Tarefas únicas aparecem só no primeiro.
           </span>
         </div>
 

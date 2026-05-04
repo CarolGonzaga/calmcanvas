@@ -6,7 +6,6 @@ import { ClientsView } from "@/components/ClientsView";
 import { CalendarView } from "@/components/CalendarView";
 import { ReportsView } from "@/components/ReportsView";
 import { NotesView } from "@/components/NotesView";
-import { SimpleTasksView } from "@/components/SimpleTasksView";
 import { Home, Users, Calendar, FileText, Heart, Cloud, CloudOff, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { store } from "@/lib/storage";
@@ -52,22 +51,13 @@ const Index = () => {
     }
   }, []);
 
-  const navItems = workspace === "saficos"
-    ? [
-        { id: "home" as View, label: "Hoje", icon: Home },
-        { id: "clients" as View, label: "Projetos", icon: Users },
-        { id: "calendar" as View, label: "Calendário", icon: Calendar },
-        { id: "reports" as View, label: "Relatórios", icon: FileText },
-      ]
-    : workspace === "mariana"
-    ? [
-        { id: "home" as View, label: "Hoje", icon: Home },
-        { id: "clients" as View, label: "Tarefas", icon: Users },
-        { id: "calendar" as View, label: "Calendário", icon: Calendar },
-      ]
-    : [
-        { id: "notes" as View, label: "Notas", icon: FileText },
-      ];
+  const navItems = [
+    { id: "home" as View, label: "Hoje", icon: Home },
+    { id: "clients" as View, label: "Projetos", icon: Users },
+    { id: "calendar" as View, label: "Calendário", icon: Calendar },
+    { id: "reports" as View, label: "Relatórios", icon: FileText },
+    { id: "notes" as View, label: "Notas livres", icon: FileText },
+  ];
 
   // reset view when workspace changes if invalid
   useEffect(() => {
@@ -76,20 +66,13 @@ const Index = () => {
   }, [workspace]);
 
   const renderView = () => {
-    if (workspace === "publique") {
-      return <NotesView workspace="publique" title="Publique" subtitle="Seu espaço livre. Anote, liste, respira." />;
-    }
-    if (workspace === "mariana") {
-      if (view === "calendar") return <CalendarView workspace="mariana" />;
-      if (view === "clients") return <SimpleTasksView workspace="mariana" title="Trabalho com Mariana" subtitle="Tarefas e combinados com a equipe." />;
-      return <Dashboard workspace="mariana" />;
-    }
-    // saficos
-    if (view === "clients") return <ClientsView workspace="saficos" />;
-    if (view === "calendar") return <CalendarView workspace="saficos" />;
-    if (view === "reports") return <ReportsView workspace="saficos" />;
-    return <Dashboard workspace="saficos" />;
+    if (view === "clients") return <ClientsView workspace={workspace} />;
+    if (view === "calendar") return <CalendarView workspace={workspace} />;
+    if (view === "reports") return <ReportsView workspace={workspace} />;
+    if (view === "notes") return <NotesView workspace={workspace} title="Notas Livres" subtitle="Seu espaço livre. Anote, liste, respira." />;
+    return <Dashboard workspace={workspace} />;
   };
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -122,29 +105,27 @@ const Index = () => {
       <main className="container py-6 md:py-10 space-y-6">
         <WorkspaceTabs active={workspace} onChange={setWorkspace} />
 
-        {workspace !== "publique" && (
-          <nav className="flex gap-1 overflow-x-auto pb-1">
-            {navItems.map(it => {
-              const Icon = it.icon;
-              const active = view === it.id;
-              return (
-                <button
-                  key={it.id}
-                  onClick={() => setView(it.id)}
-                  className={cn(
-                    "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap",
-                    active
-                      ? "bg-primary text-primary-foreground shadow-[var(--shadow-soft)]"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  )}
-                >
-                  <Icon className="w-4 h-4" />
-                  {it.label}
-                </button>
-              );
-            })}
-          </nav>
-        )}
+        <nav className="flex gap-1 overflow-x-auto pb-1">
+          {navItems.map(it => {
+            const Icon = it.icon;
+            const active = view === it.id;
+            return (
+              <button
+                key={it.id}
+                onClick={() => setView(it.id)}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap",
+                  active
+                    ? "bg-primary text-primary-foreground shadow-[var(--shadow-soft)]"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                )}
+              >
+                <Icon className="w-4 h-4" />
+                {it.label}
+              </button>
+            );
+          })}
+        </nav>
 
         <div className="pb-20">{renderView()}</div>
       </main>

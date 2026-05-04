@@ -401,7 +401,7 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [tabs, setTabs] = useState<Record<string, string>>({ "Geral": "" });
   const [activeTab, setActiveTab] = useState<string>("Geral");
-  const [linkInput, setLinkInput] = useState("");
+
   const [isAddingTab, setIsAddingTab] = useState(false);
   const [newTabName, setNewTabName] = useState("");
 
@@ -487,17 +487,7 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
     onUpdate(JSON.stringify(newTabs));
   };
 
-  const addLink = () => {
-    const trimmed = linkInput.trim();
-    if (!trimmed) return;
-    const currentText = tabs[activeTab] || "";
-    // Requirement 3: Add spacing between items (double newline)
-    const updated = currentText ? currentText + "\n\n" + trimmed : trimmed;
-    const newTabs = { ...tabs, [activeTab]: updated };
-    setTabs(newTabs);
-    onUpdate(JSON.stringify(newTabs));
-    setLinkInput("");
-  };
+
 
   const handleAddTab = (e: React.FormEvent) => {
     e.preventDefault();
@@ -561,14 +551,33 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
             </button>
           )}
 
-          <button
-            type="button"
-            onClick={() => setManageTabsOpen(true)}
-            className="ml-auto w-7 h-7 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-muted transition-colors"
-            title="Gerenciar guias"
-          >
-            <Settings className="w-3.5 h-3.5" />
-          </button>
+          <div className="ml-auto flex items-center gap-1">
+            <button
+              type="button"
+              onClick={copyText}
+              title="Copiar texto"
+              className="w-7 h-7 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+            >
+              <Copy className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={clearText}
+              title="Limpar guia atual"
+              className="w-7 h-7 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+            >
+              <Eraser className="w-3.5 h-3.5" />
+            </button>
+            <div className="w-px h-4 bg-border/60 mx-1" />
+            <button
+              type="button"
+              onClick={() => setManageTabsOpen(true)}
+              className="w-7 h-7 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-muted transition-colors"
+              title="Gerenciar guias"
+            >
+              <Settings className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
         {/* Textarea: increased height and leading-relaxed for spacing */}
@@ -576,42 +585,8 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
           value={tabs[activeTab] || ""}
           onChange={handleNotesChange}
           placeholder={`Anote links, referências e informações em '${activeTab}'...`}
-          className="w-full min-h-[200px] leading-relaxed px-4 py-3 text-sm rounded-xl border border-border bg-background focus:outline-none focus:border-primary resize-y"
+          className="w-full min-h-[300px] leading-relaxed px-4 py-3 text-sm rounded-xl border border-border bg-background focus:outline-none focus:border-primary resize-y"
         />
-        <div className="flex gap-2 mt-2">
-          <input
-            type="url"
-            value={linkInput}
-            onChange={e => setLinkInput(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && addLink()}
-            placeholder="Cole um link e pressione Enter ou clique em +"
-            className="flex-1 px-3 py-2 text-sm rounded-xl border border-border bg-background focus:outline-none focus:border-primary"
-          />
-          <button
-            type="button"
-            onClick={addLink}
-            className="px-3 py-2 rounded-xl bg-primary-soft text-primary hover:bg-primary/20 transition-colors text-sm font-medium"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-          <div className="w-px bg-border/60 mx-1 my-1" />
-          <button
-            type="button"
-            onClick={copyText}
-            title="Copiar texto"
-            className="px-3 py-2 rounded-xl border border-border text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-          >
-            <Copy className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            onClick={clearText}
-            title="Limpar guia atual"
-            className="px-3 py-2 rounded-xl border border-border text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-          >
-            <Eraser className="w-4 h-4" />
-          </button>
-        </div>
       </div>
 
       {manageTabsOpen && (

@@ -33,6 +33,7 @@ export interface Task {
   createdAt: string;
   completedAt?: string;
   isReport?: boolean;
+  urgency?: "urgent" | "today" | "whenever"; // 1=urgente, 2=pra hoje, 3=sem pressa
 }
 
 export interface NoteBlock {

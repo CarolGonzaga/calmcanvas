@@ -3,6 +3,7 @@ import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { fmtDate, todayISO } from "@/lib/cycles";
 import { useState } from "react";
+import { useFocoData } from "@/hooks/useFocoData";
 
 interface Props {
   task: Task;
@@ -12,8 +13,17 @@ interface Props {
   showClient?: boolean;
 }
 
+const urgencyConfig = {
+  urgent:   { label: "🔴 Urgente",  bg: "bg-red-500/10",    text: "text-red-600 dark:text-red-400"    },
+  today:    { label: "🟡 Pra hoje", bg: "bg-yellow-500/10", text: "text-yellow-600 dark:text-yellow-400" },
+  whenever: { label: "🟢 Sem pressa", bg: "bg-emerald-500/10", text: "text-emerald-600 dark:text-emerald-400" },
+} as const;
+
+const urgencyCycle: Array<Task["urgency"]> = ["urgent", "today", "whenever"];
+
 export function TaskItem({ task, clientName, onToggle, showClient }: Props) {
   const [justChecked, setJustChecked] = useState(false);
+  const { updateTask } = useFocoData();
   const overdue = task.status !== "done" && task.dueDate && task.dueDate < todayISO();
   const done = task.status === "done";
 
@@ -22,6 +32,15 @@ export function TaskItem({ task, clientName, onToggle, showClient }: Props) {
     setTimeout(() => setJustChecked(false), 500);
     onToggle(task.id);
   };
+
+  const cycleUrgency = () => {
+    const cur = task.urgency ?? "whenever";
+    const next = urgencyCycle[(urgencyCycle.indexOf(cur) + 1) % urgencyCycle.length];
+    updateTask(task.id, { urgency: next });
+  };
+
+  const urgency = task.urgency ?? "whenever";
+  const uc = urgencyConfig[urgency];
 
   return (
     <div
@@ -63,6 +82,19 @@ export function TaskItem({ task, clientName, onToggle, showClient }: Props) {
           </div>
         ) : null}
       </div>
+
+      {!done && (
+        <button
+          onClick={cycleUrgency}
+          title="Clique para mudar urgência"
+          className={cn(
+            "shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full transition-all",
+            uc.bg, uc.text
+          )}
+        >
+          {uc.label}
+        </button>
+      )}
     </div>
   );
 }

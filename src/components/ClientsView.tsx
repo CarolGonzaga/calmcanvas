@@ -122,41 +122,67 @@ export function ClientsView({ workspace }: { workspace: Workspace }) {
   );
 }
 
-function QuickAddTask({ onAdd, cycleEnd }: { onAdd: (data: { name: string; dueDate?: string; isReport?: boolean }) => void; cycleEnd: string }) {
+function QuickAddTask({ onAdd, cycleEnd }: { onAdd: (data: { name: string; dueDate?: string; isReport?: boolean; urgency?: "urgent" | "today" | "whenever" }) => void; cycleEnd: string }) {
   const [v, setV] = useState("");
   const [due, setDue] = useState("");
   const [isReport, setIsReport] = useState(false);
+  const [urgency, setUrgency] = useState<"urgent" | "today" | "whenever">("whenever");
+
+  const urgencyOptions: { value: "urgent" | "today" | "whenever"; label: string }[] = [
+    { value: "urgent",   label: "🔴 Urgente"   },
+    { value: "today",    label: "🟡 Pra hoje"  },
+    { value: "whenever", label: "🟢 Sem pressa" },
+  ];
+
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
         if (!v.trim()) return;
-        onAdd({ name: v.trim(), dueDate: due || undefined, isReport });
-        setV(""); setDue(""); setIsReport(false);
+        onAdd({ name: v.trim(), dueDate: due || undefined, isReport, urgency });
+        setV(""); setDue(""); setIsReport(false); setUrgency("whenever");
       }}
-      className="flex flex-col sm:flex-row sm:items-center gap-2"
+      className="flex flex-col gap-2"
     >
-      <input
-        value={v}
-        onChange={e => setV(e.target.value)}
-        placeholder="Adicionar tarefa neste ciclo…"
-        className="flex-1 px-4 py-2.5 rounded-xl bg-card border border-border focus:border-primary focus:outline-none text-sm"
-      />
-      <input
-        type="date"
-        value={due}
-        max={cycleEnd}
-        onChange={e => setDue(e.target.value)}
-        title="Prazo (opcional)"
-        className="px-3 py-2.5 rounded-xl bg-card border border-border focus:border-primary focus:outline-none text-sm"
-      />
-      <label className="flex items-center gap-1.5 text-xs text-muted-foreground px-2 select-none cursor-pointer">
-        <input type="checkbox" checked={isReport} onChange={e => setIsReport(e.target.checked)} />
-        📋 relatório
-      </label>
-      <button type="submit" className="px-3 py-2.5 rounded-xl bg-primary-soft text-primary hover:bg-primary hover:text-primary-foreground transition-colors">
-        <Plus className="w-4 h-4" />
-      </button>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+        <input
+          value={v}
+          onChange={e => setV(e.target.value)}
+          placeholder="Adicionar tarefa neste ciclo…"
+          className="flex-1 px-4 py-2.5 rounded-xl bg-card border border-border focus:border-primary focus:outline-none text-sm"
+        />
+        <input
+          type="date"
+          value={due}
+          max={cycleEnd}
+          onChange={e => setDue(e.target.value)}
+          title="Prazo (opcional)"
+          className="px-3 py-2.5 rounded-xl bg-card border border-border focus:border-primary focus:outline-none text-sm"
+        />
+        <button type="submit" className="px-3 py-2.5 rounded-xl bg-primary-soft text-primary hover:bg-primary hover:text-primary-foreground transition-colors">
+          <Plus className="w-4 h-4" />
+        </button>
+      </div>
+      <div className="flex items-center gap-3 pl-1">
+        {urgencyOptions.map(opt => (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => setUrgency(opt.value)}
+            className={`text-xs px-2.5 py-1 rounded-full border transition-all ${
+              urgency === opt.value
+                ? "border-primary bg-primary/10 text-primary font-semibold"
+                : "border-border text-muted-foreground hover:border-muted-foreground"
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+        <label className="flex items-center gap-1.5 text-xs text-muted-foreground select-none cursor-pointer ml-auto">
+          <input type="checkbox" checked={isReport} onChange={e => setIsReport(e.target.checked)} />
+          📋 relatório
+        </label>
+      </div>
     </form>
   );
 }

@@ -1,7 +1,7 @@
 import { useFocoData } from "@/hooks/useFocoData";
 import { TaskItem } from "./TaskItem";
 import { getOverdueTasks, getTodayTasks, getUpcomingDeadlines, fmtDate, ensureCycle, clientProgress } from "@/lib/cycles";
-import { Sparkles } from "lucide-react";
+import { AlertTriangle, Sparkles } from "lucide-react";
 import { Workspace } from "@/lib/types";
 
 const greetings = ["Oi ❤️", "Olá!", "Que bom te ver", "Oi, Amor", "Hora de trabalhar, gatinha", "Bora, mulher!", "Ei, gatinha", "Pronta pra brilhar?", "Vamos trabalhar, meu amor", "Ei, amor da minha vida", "Oi, vidinha", "Bora trabalhar", "Oi, linda", "Oi, deusa", "Oi, rainha", "Oi, poderosa", "Oi, maravilhosa"];
@@ -14,13 +14,26 @@ export function Dashboard({ workspace }: { workspace: Workspace }) {
   const overdue = getOverdueTasks().filter(filterWs);
   const upcoming = getUpcomingDeadlines(7).filter(filterWs);
 
+  // Urgentes: tarefas com urgency="urgent" ainda não concluídas
+  const urgent = tasks.filter(t =>
+    t.workspace === workspace &&
+    t.status !== "done" &&
+    t.urgency === "urgent"
+  );
+
+  // Pra hoje: tarefas com urgency="today" ainda não concluídas
+  const forToday = tasks.filter(t =>
+    t.workspace === workspace &&
+    t.status !== "done" &&
+    t.urgency === "today"
+  );
+
   const wsClients = clients.filter(c => c.workspace === workspace);
-  const wsTasks = tasks.filter(t => t.workspace === workspace && t.status !== "done" && !t.dueDate);
 
   const greeting = greetings[Math.floor(Math.random() * greetings.length)];
   const date = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
 
-  const totalPending = today.length + overdue.length + wsTasks.length;
+  const totalPending = urgent.length + forToday.length + today.length + overdue.length;
   const friendly =
     totalPending === 0
       ? "Tudo em dia por aqui ✨"
@@ -38,13 +51,41 @@ export function Dashboard({ workspace }: { workspace: Workspace }) {
         <p className="text-muted-foreground mt-2">{friendly}</p>
       </div>
 
-      {/* Today */}
+      {/* Urgentes */}
+      {urgent.length > 0 && (
+        <section>
+          <h2 className="text-xs uppercase tracking-wider mb-3 font-semibold flex items-center gap-1.5 text-red-500">
+            <AlertTriangle className="w-3.5 h-3.5" /> Urgentes
+          </h2>
+          <div className="space-y-2">
+            {urgent.map(t => (
+              <TaskItem key={t.id} task={t} clientName={clientName(t.clientId)} showClient onToggle={toggleTask} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Pra hoje (urgency=today) */}
+      {forToday.length > 0 && (
+        <section>
+          <h2 className="text-xs uppercase tracking-wider mb-3 font-semibold flex items-center gap-1.5 text-yellow-500">
+            🟡 Pra hoje
+          </h2>
+          <div className="space-y-2">
+            {forToday.map(t => (
+              <TaskItem key={t.id} task={t} clientName={clientName(t.clientId)} showClient onToggle={toggleTask} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Today (dueDate = hoje) */}
       <section>
-        <h2 className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-medium">Para hoje</h2>
+        <h2 className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-medium">Com prazo hoje</h2>
         {today.length === 0 ? (
           <div className="soft-card p-6 text-center text-muted-foreground bg-gradient-soft">
             <Sparkles className="w-5 h-5 mx-auto mb-2 text-primary" />
-            Nada urgente para hoje. Respira fundo.
+            Nada com prazo marcado para hoje.
           </div>
         ) : (
           <div className="space-y-2">

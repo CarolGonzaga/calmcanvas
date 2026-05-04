@@ -228,7 +228,7 @@ function NewClientModal({ workspace, onClose, onSave }: {
           taskTemplate.push(extra.qty > 1 ? `${extra.name.trim()} (${i + 1}/${extra.qty})` : extra.name.trim());
         }
       } else {
-        taskTemplate.push(`[once] ${extra.name.trim()}`);
+        taskTemplate.push(`[ÚNICA] ${extra.name.trim()}`);
       }
     });
 

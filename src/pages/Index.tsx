@@ -7,14 +7,16 @@ import { CalendarView } from "@/components/CalendarView";
 import { ReportsView } from "@/components/ReportsView";
 import { NotesView } from "@/components/NotesView";
 import { SimpleTasksView } from "@/components/SimpleTasksView";
-import { Home, Users, Calendar, FileText, Heart } from "lucide-react";
+import { Home, Users, Calendar, FileText, Heart, Cloud, CloudOff, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { store } from "@/lib/storage";
 import { useFocoData } from "@/hooks/useFocoData";
+import { useGoogleDrive } from "@/hooks/useGoogleDrive";
 
 type View = "home" | "clients" | "calendar" | "reports" | "notes";
 
 const Index = () => {
+  const { driveService, isSyncing, login, logout } = useGoogleDrive();
   const [workspace, setWorkspace] = useState<Workspace>("saficos");
   const [view, setView] = useState<View>("home");
   const { syncAllCycles } = useFocoData();
@@ -53,7 +55,7 @@ const Index = () => {
   const navItems = workspace === "saficos"
     ? [
         { id: "home" as View, label: "Hoje", icon: Home },
-        { id: "clients" as View, label: "Clientes", icon: Users },
+        { id: "clients" as View, label: "Projetos", icon: Users },
         { id: "calendar" as View, label: "Calendário", icon: Calendar },
         { id: "reports" as View, label: "Relatórios", icon: FileText },
       ]
@@ -92,13 +94,27 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border/60 bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="container py-4 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-primary-soft flex items-center justify-center">
-            <Heart className="w-4 h-4 text-primary" fill="currentColor" />
+        <div className="container py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-primary-soft flex items-center justify-center">
+              <Heart className="w-4 h-4 text-primary" fill="currentColor" />
+            </div>
+            <div>
+              <h1 className="font-display text-lg leading-none">Foco</h1>
+              <p className="text-[11px] text-muted-foreground">sua assistente silenciosa</p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-display text-lg leading-none">Foco</h1>
-            <p className="text-[11px] text-muted-foreground">sua assistente silenciosa</p>
+          <div className="flex items-center gap-2">
+            {isSyncing && <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />}
+            {driveService ? (
+              <button onClick={logout} className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-full bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 transition-colors">
+                <Cloud className="w-3.5 h-3.5" /> Nuvem Conectada
+              </button>
+            ) : (
+              <button onClick={() => login()} className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-full bg-muted text-muted-foreground hover:bg-muted/80 transition-colors">
+                <CloudOff className="w-3.5 h-3.5" /> Conectar Drive
+              </button>
+            )}
           </div>
         </div>
       </header>

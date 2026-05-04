@@ -4,14 +4,17 @@ import { Client, Task, Workspace } from "@/lib/types";
 import { ensureCycle, syncAllCycles } from "@/lib/cycles";
 
 let listeners: Array<() => void> = [];
-function emit() { listeners.forEach(l => l()); }
+export function emit() { listeners.forEach(l => l()); }
+
+export function subscribeToFocoData(listener: () => void) {
+  listeners.push(listener);
+  return () => { listeners = listeners.filter(x => x !== listener); };
+}
 
 export function useFocoData() {
   const [, setTick] = useState(0);
   useEffect(() => {
-    const l = () => setTick(t => t + 1);
-    listeners.push(l);
-    return () => { listeners = listeners.filter(x => x !== l); };
+    return subscribeToFocoData(() => setTick(t => t + 1));
   }, []);
 
   const clients = store.getClients();

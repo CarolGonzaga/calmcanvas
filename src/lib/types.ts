@@ -11,6 +11,7 @@ export interface Client {
   color?: string;
   workspace: Workspace; // usually 'saficos'
   createdAt: string;
+  notes?: string; // Project notes/links
 }
 
 export interface Cycle {

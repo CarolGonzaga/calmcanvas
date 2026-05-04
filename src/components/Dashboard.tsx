@@ -1,6 +1,6 @@
 import { useFocoData } from "@/hooks/useFocoData";
 import { TaskItem } from "./TaskItem";
-import { getOverdueTasks, getTodayTasks, getUpcomingDeadlines, fmtDate, ensureCycle, clientProgress } from "@/lib/cycles";
+import { getOverdueTasks, getUpcomingDeadlines, fmtDate, ensureCycle, clientProgress } from "@/lib/cycles";
 import { AlertTriangle, Sparkles } from "lucide-react";
 import { Workspace } from "@/lib/types";
 
@@ -10,9 +10,6 @@ export function Dashboard({ workspace }: { workspace: Workspace }) {
   const { clients, tasks, toggleTask } = useFocoData();
 
   const filterWs = (t: any) => t.workspace === workspace;
-  const today = getTodayTasks().filter(filterWs);
-  const overdue = getOverdueTasks().filter(filterWs);
-  const upcoming = getUpcomingDeadlines(7).filter(filterWs);
 
   // Urgentes: tarefas com urgency="urgent" ainda não concluídas
   const urgent = tasks.filter(t =>
@@ -28,12 +25,23 @@ export function Dashboard({ workspace }: { workspace: Workspace }) {
     t.urgency === "today"
   );
 
+  // To avoid duplication, we filter out tasks already in urgent or forToday
+  const excludeIds = new Set([...urgent.map(t => t.id), ...forToday.map(t => t.id)]);
+
+  const overdue = getOverdueTasks()
+    .filter(filterWs)
+    .filter(t => !excludeIds.has(t.id));
+    
+  const upcoming = getUpcomingDeadlines(7)
+    .filter(filterWs)
+    .filter(t => !excludeIds.has(t.id));
+
   const wsClients = clients.filter(c => c.workspace === workspace);
 
   const greeting = greetings[Math.floor(Math.random() * greetings.length)];
   const date = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
 
-  const totalPending = urgent.length + forToday.length + today.length + overdue.length;
+  const totalPending = urgent.length + forToday.length + overdue.length;
   const friendly =
     totalPending === 0
       ? "Tudo em dia por aqui ✨"
@@ -78,23 +86,6 @@ export function Dashboard({ workspace }: { workspace: Workspace }) {
           </div>
         </section>
       )}
-
-      {/* Today (dueDate = hoje) */}
-      <section>
-        <h2 className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-medium">Com prazo hoje</h2>
-        {today.length === 0 ? (
-          <div className="soft-card p-6 text-center text-muted-foreground bg-gradient-soft">
-            <Sparkles className="w-5 h-5 mx-auto mb-2 text-primary" />
-            Nada com prazo marcado para hoje.
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {today.map(t => (
-              <TaskItem key={t.id} task={t} clientName={clientName(t.clientId)} showClient onToggle={toggleTask} />
-            ))}
-          </div>
-        )}
-      </section>
 
       {/* Overdue */}
       {overdue.length > 0 && (

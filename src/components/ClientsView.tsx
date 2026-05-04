@@ -82,7 +82,10 @@ export function ClientsView({ workspace }: { workspace: Workspace }) {
                       </button>
                     </div>
                   ))}
-                  <QuickAddTask onAdd={(name) => addTask({ name, clientId: c.id, cycleId: cycle.id, workspace: c.workspace })} />
+                  <QuickAddTask
+                    cycleEnd={cycle.end}
+                    onAdd={(data) => addTask({ ...data, clientId: c.id, cycleId: cycle.id, workspace: c.workspace })}
+                  />
 
                   <div className="pt-3 mt-3 border-t border-border/60 flex items-center justify-between text-xs text-muted-foreground">
                     <span>Início do contrato: {fmtDateLong(c.startDate)}</span>
@@ -111,12 +114,19 @@ export function ClientsView({ workspace }: { workspace: Workspace }) {
   );
 }
 
-function QuickAddTask({ onAdd }: { onAdd: (name: string) => void }) {
+function QuickAddTask({ onAdd, cycleEnd }: { onAdd: (data: { name: string; dueDate?: string; isReport?: boolean }) => void; cycleEnd: string }) {
   const [v, setV] = useState("");
+  const [due, setDue] = useState("");
+  const [isReport, setIsReport] = useState(false);
   return (
     <form
-      onSubmit={(e) => { e.preventDefault(); if (v.trim()) { onAdd(v.trim()); setV(""); } }}
-      className="flex items-center gap-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!v.trim()) return;
+        onAdd({ name: v.trim(), dueDate: due || undefined, isReport });
+        setV(""); setDue(""); setIsReport(false);
+      }}
+      className="flex flex-col sm:flex-row sm:items-center gap-2"
     >
       <input
         value={v}
@@ -124,6 +134,18 @@ function QuickAddTask({ onAdd }: { onAdd: (name: string) => void }) {
         placeholder="Adicionar tarefa neste ciclo…"
         className="flex-1 px-4 py-2.5 rounded-xl bg-card border border-border focus:border-primary focus:outline-none text-sm"
       />
+      <input
+        type="date"
+        value={due}
+        max={cycleEnd}
+        onChange={e => setDue(e.target.value)}
+        title="Prazo (opcional)"
+        className="px-3 py-2.5 rounded-xl bg-card border border-border focus:border-primary focus:outline-none text-sm"
+      />
+      <label className="flex items-center gap-1.5 text-xs text-muted-foreground px-2 select-none cursor-pointer">
+        <input type="checkbox" checked={isReport} onChange={e => setIsReport(e.target.checked)} />
+        📋 relatório
+      </label>
       <button type="submit" className="px-3 py-2.5 rounded-xl bg-primary-soft text-primary hover:bg-primary hover:text-primary-foreground transition-colors">
         <Plus className="w-4 h-4" />
       </button>

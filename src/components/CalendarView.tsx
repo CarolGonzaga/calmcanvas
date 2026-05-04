@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useFocoData } from "@/hooks/useFocoData";
 import { Workspace } from "@/lib/types";
-import { fmtDate, parseISO, todayISO, ensureCycle } from "@/lib/cycles";
+import { fmtDate, parseISO, todayISO } from "@/lib/cycles";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 

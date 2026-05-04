@@ -20,16 +20,16 @@ export function ClientsView({ workspace }: { workspace: Workspace }) {
     <div className="space-y-6 animate-fade-up">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-3xl">Clientes</h1>
+          <h1 className="font-display text-3xl">Projetos</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Cada cliente tem seu próprio ciclo mensal automático.
+            Cada projeto tem seu próprio ciclo mensal automático.
           </p>
         </div>
         <button
           onClick={() => setShowForm(true)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-[var(--shadow-soft)]"
         >
-          <Plus className="w-4 h-4" /> Novo cliente
+          <Plus className="w-4 h-4" /> Novo projeto
         </button>
       </div>
 
@@ -90,9 +90,9 @@ export function ClientsView({ workspace }: { workspace: Workspace }) {
                     onAdd={(data) => addTask({ ...data, clientId: c.id, cycleId: cycle.id, workspace: c.workspace })}
                   />
 
-                  <ProjectDriveFiles 
-                    client={c} 
-                    onUpdate={(notes) => updateClient(c.id, { notes })} 
+                  <ProjectDriveFiles
+                    client={c}
+                    onUpdate={(notes) => updateClient(c.id, { notes })}
                   />
 
                   <div className="pt-3 mt-3 border-t border-border/60 flex items-center justify-between text-xs text-muted-foreground">
@@ -168,15 +168,15 @@ function NewClientModal({ workspace, onClose, onSave }: {
 }) {
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState(todayISO());
-  
+
   const optionsList = [
-    'Lançamento', 'Pré-venda ebook', 'Pré-venda físico', 'Trecho no x', 
-    'Story temático', 'Divulgação na comunidade', 'Thread', 'Carrossel', 
+    'Lançamento', 'Pré-venda ebook', 'Pré-venda físico', 'Trecho no x',
+    'Story temático', 'Divulgação na comunidade', 'Thread', 'Carrossel',
     'Reels', 'Stories em vídeo'
   ];
 
   const [quantities, setQuantities] = useState<Record<string, number>>({});
-  const [extras, setExtras] = useState<{id: string, name: string, qty: number, recurring: boolean}[]>([]);
+  const [extras, setExtras] = useState<{ id: string, name: string, qty: number, recurring: boolean }[]>([]);
 
   const updateQty = (key: string, delta: number) => {
     setQuantities(prev => {
@@ -209,14 +209,14 @@ function NewClientModal({ workspace, onClose, onSave }: {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const taskTemplate: string[] = [];
-    
+
     if (workspace === "saficos") {
       optionsList.forEach(opt => {
         const qty = quantities[opt] || 0;
         for (let i = 0; i < qty; i++) {
-          taskTemplate.push(qty > 1 ? `${opt} (${i+1}/${qty})` : opt);
+          taskTemplate.push(qty > 1 ? `${opt} (${i + 1}/${qty})` : opt);
         }
       });
     }
@@ -225,7 +225,7 @@ function NewClientModal({ workspace, onClose, onSave }: {
       if (!extra.name.trim() || extra.qty <= 0) return;
       if (extra.recurring) {
         for (let i = 0; i < extra.qty; i++) {
-          taskTemplate.push(extra.qty > 1 ? `${extra.name.trim()} (${i+1}/${extra.qty})` : extra.name.trim());
+          taskTemplate.push(extra.qty > 1 ? `${extra.name.trim()} (${i + 1}/${extra.qty})` : extra.name.trim());
         }
       } else {
         taskTemplate.push(`[once] ${extra.name.trim()}`);
@@ -300,9 +300,9 @@ function NewClientModal({ workspace, onClose, onSave }: {
                   <button
                     type="button"
                     onClick={() => toggleExtraRecurring(extra.id)}
-                    className={`relative w-8 h-4 rounded-full transition-colors flex-shrink-0 ${extra.recurring ? "bg-primary" : "bg-muted-foreground/30"}`}
+                    className={`relative w-9 h-5 rounded-full transition-colors flex-shrink-0 overflow-hidden ${extra.recurring ? "bg-primary" : "bg-muted-foreground/30"}`}
                   >
-                    <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-transform ${extra.recurring ? "translate-x-4" : "translate-x-0.5"}`} />
+                    <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${extra.recurring ? "translate-x-4" : "translate-x-0"}`} />
                   </button>
                   <span className={`text-xs ${extra.recurring ? "text-primary font-medium" : "text-muted-foreground"}`}>
                     {extra.recurring ? "Recorrente (todo ciclo)" : "Única (1º ciclo apenas)"}

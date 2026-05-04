@@ -4,7 +4,7 @@ import { getOverdueTasks, getTodayTasks, getUpcomingDeadlines, fmtDate, ensureCy
 import { Sparkles } from "lucide-react";
 import { Workspace } from "@/lib/types";
 
-const greetings = ["Oi ❤️", "Olá!", "Que bom te ver", "Oi, Amor", "Hora de trabalhar, gatinha", "Bora", "Ei, gatinha", "Pronta pra brilhar?", "Vamos trabalhar, meu amor", "Ei, amor da minha vida", "Oi, vidinha", "Bora trabalhar", "Oi, linda", "Oi, deusa", "Oi, rainha", "Oi, poderosa", "Oi, maravilhosa"];
+const greetings = ["Oi ❤️", "Olá!", "Que bom te ver", "Oi, Amor", "Hora de trabalhar, gatinha", "Bora, mulher!", "Ei, gatinha", "Pronta pra brilhar?", "Vamos trabalhar, meu amor", "Ei, amor da minha vida", "Oi, vidinha", "Bora trabalhar", "Oi, linda", "Oi, deusa", "Oi, rainha", "Oi, poderosa", "Oi, maravilhosa"];
 
 export function Dashboard({ workspace }: { workspace: Workspace }) {
   const { clients, tasks, toggleTask } = useFocoData();
@@ -25,7 +25,7 @@ export function Dashboard({ workspace }: { workspace: Workspace }) {
     totalPending === 0
       ? "Tudo em dia por aqui ✨"
       : totalPending <= 3
-        ? "Falta pouco 💛"
+        ? "Falta pouco, gatinha! ❤️"
         : "Algumas tarefas estão te esperando";
 
   const clientName = (id?: string) => clients.find(c => c.id === id)?.name;

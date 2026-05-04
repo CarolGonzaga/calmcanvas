@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback, createContext, useContext } from 'react';
 import { useGoogleLogin, googleLogout } from '@react-oauth/google';
 import { DriveService } from '@/lib/drive';
+import { CalendarService } from '@/lib/calendar';
 import { store } from '@/lib/storage';
-import { emit, subscribeToFocoData } from './useFocoData';
+import { emit, subscribeToFocoData } from '@/lib/events';
 
 type DriveContextType = {
   driveService: DriveService | null;
+  calendarService: CalendarService | null;
   appFolderId: string | null;
   isSyncing: boolean;
   login: () => void;
@@ -14,6 +16,7 @@ type DriveContextType = {
 
 const DriveContext = createContext<DriveContextType>({
   driveService: null,
+  calendarService: null,
   appFolderId: null,
   isSyncing: false,
   login: () => {},
@@ -24,14 +27,16 @@ export const useGoogleDrive = () => useContext(DriveContext);
 
 export function GoogleDriveProvider({ children }: { children: React.ReactNode }) {
   const [driveService, setDriveService] = useState<DriveService | null>(null);
+  const [calendarService, setCalendarService] = useState<CalendarService | null>(null);
   const [appFolderId, setAppFolderId] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
 
   const login = useGoogleLogin({
-    scope: 'https://www.googleapis.com/auth/drive.file',
+    scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/calendar.events',
     onSuccess: async (tokenResponse) => {
       const ds = new DriveService(tokenResponse.access_token);
       setDriveService(ds);
+      setCalendarService(new CalendarService(tokenResponse.access_token));
       
       setIsSyncing(true);
       try {
@@ -66,6 +71,7 @@ export function GoogleDriveProvider({ children }: { children: React.ReactNode })
   const logout = useCallback(() => {
     googleLogout();
     setDriveService(null);
+    setCalendarService(null);
     setAppFolderId(null);
   }, []);
 
@@ -110,7 +116,7 @@ export function GoogleDriveProvider({ children }: { children: React.ReactNode })
   }, [driveService, appFolderId]);
 
   return (
-    <DriveContext.Provider value={{ driveService, appFolderId, isSyncing, login, logout }}>
+    <DriveContext.Provider value={{ driveService, calendarService, appFolderId, isSyncing, login, logout }}>
       {children}
     </DriveContext.Provider>
   );

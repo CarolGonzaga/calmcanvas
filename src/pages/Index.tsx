@@ -91,11 +91,11 @@ const Index = () => {
             {isSyncing && <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />}
             {driveService ? (
               <button onClick={logout} className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-full bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 transition-colors">
-                <Cloud className="w-3.5 h-3.5" /> Nuvem Conectada
+                <Cloud className="w-3.5 h-3.5" /> Google Conectado
               </button>
             ) : (
               <button onClick={() => login()} className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-full bg-muted text-muted-foreground hover:bg-muted/80 transition-colors">
-                <CloudOff className="w-3.5 h-3.5" /> Conectar Drive
+                <CloudOff className="w-3.5 h-3.5" /> Conectar Google
               </button>
             )}
           </div>

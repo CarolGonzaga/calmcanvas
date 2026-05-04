@@ -316,6 +316,7 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [notes, setNotes] = useState(client.notes || "");
+  const [linkInput, setLinkInput] = useState("");
 
   useEffect(() => {
     setNotes(client.notes || "");
@@ -343,7 +344,6 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return;
     const file = e.target.files[0];
-    
     setUploading(true);
     try {
       const pId = await driveService!.getProjectFolderId(client.name, appFolderId!);
@@ -364,64 +364,101 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
     onUpdate(e.target.value);
   };
 
-  if (!driveService) return null;
+  const addLink = () => {
+    const trimmed = linkInput.trim();
+    if (!trimmed) return;
+    const current = notes ? notes + "\n" : "";
+    const updated = current + trimmed;
+    setNotes(updated);
+    onUpdate(updated);
+    setLinkInput("");
+  };
 
   return (
-    <div className="pt-4 mt-4 border-t border-border/60">
-      <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
-        <Cloud className="w-4 h-4 text-primary" /> Materiais e Links (Drive)
-      </h4>
-      
-      <div className="space-y-4">
+    <div className="pt-4 mt-4 border-t border-border/60 space-y-4">
+      {/* Notas e links — sempre visível */}
+      <div>
+        <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+          <FileText className="w-4 h-4 text-primary" /> Textos e Links do Projeto
+        </h4>
         <textarea
           value={notes}
           onChange={handleNotesChange}
-          placeholder="Anotações importantes e links do projeto..."
-          className="w-full h-24 px-3 py-2 text-sm rounded-xl border border-border bg-background focus:outline-none focus:border-primary resize-none"
+          placeholder="Anote links, referências, briefings e informações importantes..."
+          className="w-full h-28 px-3 py-2 text-sm rounded-xl border border-border bg-background focus:outline-none focus:border-primary resize-none"
         />
-
-        {loading ? (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="w-4 h-4 animate-spin" /> Carregando arquivos...
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <div className="flex flex-wrap gap-2">
-              {files.map(f => (
-                <a 
-                  key={f.id} 
-                  href={f.webViewLink} 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-card hover:bg-muted transition-colors text-xs"
-                >
-                  {f.iconLink ? <img src={f.iconLink} alt="" className="w-4 h-4" /> : <File className="w-4 h-4" />}
-                  <span className="truncate max-w-[150px]">{f.name}</span>
-                </a>
-              ))}
-              {files.length === 0 && <span className="text-xs text-muted-foreground">Nenhum arquivo ainda.</span>}
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <input 
-                type="file" 
-                className="hidden" 
-                ref={fileInputRef}
-                onChange={handleUpload}
-              />
-              <button 
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                type="button"
-                className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg bg-primary-soft text-primary hover:bg-primary/20 transition-colors"
-              >
-                {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UploadCloud className="w-3.5 h-3.5" />}
-                {uploading ? "Enviando..." : "Upload Arquivo"}
-              </button>
-            </div>
-          </div>
-        )}
+        <div className="flex gap-2 mt-2">
+          <input
+            type="url"
+            value={linkInput}
+            onChange={e => setLinkInput(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && addLink()}
+            placeholder="Cole um link e pressione Enter ou clique em +"
+            className="flex-1 px-3 py-2 text-sm rounded-xl border border-border bg-background focus:outline-none focus:border-primary"
+          />
+          <button
+            type="button"
+            onClick={addLink}
+            className="px-3 py-2 rounded-xl bg-primary-soft text-primary hover:bg-primary/20 transition-colors text-sm font-medium"
+          >
+            +
+          </button>
+        </div>
       </div>
+
+      {/* Arquivos do Drive — só aparece se conectado */}
+      {driveService ? (
+        <div>
+          <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+            <Cloud className="w-4 h-4 text-primary" /> Arquivos no Drive
+          </h4>
+          {loading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" /> Carregando arquivos...
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-2">
+                {files.map(f => (
+                  <a
+                    key={f.id}
+                    href={f.webViewLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-card hover:bg-muted transition-colors text-xs"
+                  >
+                    {f.iconLink ? <img src={f.iconLink} alt="" className="w-4 h-4" /> : <File className="w-4 h-4" />}
+                    <span className="truncate max-w-[150px]">{f.name}</span>
+                  </a>
+                ))}
+                {files.length === 0 && <span className="text-xs text-muted-foreground">Nenhum arquivo enviado ainda.</span>}
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="file"
+                  className="hidden"
+                  ref={fileInputRef}
+                  onChange={handleUpload}
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  type="button"
+                  className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg bg-primary-soft text-primary hover:bg-primary/20 transition-colors"
+                >
+                  {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UploadCloud className="w-3.5 h-3.5" />}
+                  {uploading ? "Enviando..." : "Upload Arquivo"}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+          <CloudOff className="w-3.5 h-3.5" />
+          Conecte ao Google Drive para enviar arquivos.
+        </p>
+      )}
     </div>
   );
 }

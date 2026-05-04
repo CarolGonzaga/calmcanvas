@@ -399,12 +399,35 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [notes, setNotes] = useState(client.notes || "");
+  const [tabs, setTabs] = useState<Record<string, string>>({ "Geral": "" });
+  const [activeTab, setActiveTab] = useState<string>("Geral");
   const [linkInput, setLinkInput] = useState("");
+  const [isAddingTab, setIsAddingTab] = useState(false);
+  const [newTabName, setNewTabName] = useState("");
 
   useEffect(() => {
-    setNotes(client.notes || "");
+    if (!client.notes) {
+      setTabs({ "Geral": "" });
+      return;
+    }
+    try {
+      const parsed = JSON.parse(client.notes);
+      if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
+        setTabs(parsed);
+      } else {
+        setTabs({ "Geral": client.notes });
+      }
+    } catch {
+      setTabs({ "Geral": client.notes });
+    }
   }, [client.notes]);
+
+  useEffect(() => {
+    if (!tabs[activeTab]) {
+      const keys = Object.keys(tabs);
+      if (keys.length > 0) setActiveTab(keys[0]);
+    }
+  }, [tabs, activeTab]);
 
   useEffect(() => {
     if (driveService && appFolderId) {
@@ -444,32 +467,90 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
   };
 
   const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setNotes(e.target.value);
-    onUpdate(e.target.value);
+    const newTabs = { ...tabs, [activeTab]: e.target.value };
+    setTabs(newTabs);
+    onUpdate(JSON.stringify(newTabs));
   };
 
   const addLink = () => {
     const trimmed = linkInput.trim();
     if (!trimmed) return;
-    const current = notes ? notes + "\n" : "";
-    const updated = current + trimmed;
-    setNotes(updated);
-    onUpdate(updated);
+    const currentText = tabs[activeTab] || "";
+    // Requirement 3: Add spacing between items (double newline)
+    const updated = currentText ? currentText + "\n\n" + trimmed : trimmed;
+    const newTabs = { ...tabs, [activeTab]: updated };
+    setTabs(newTabs);
+    onUpdate(JSON.stringify(newTabs));
     setLinkInput("");
+  };
+
+  const handleAddTab = (e: React.FormEvent) => {
+    e.preventDefault();
+    const name = newTabName.trim();
+    if (!name) return;
+    const newTabs = { ...tabs, [name]: "" };
+    setTabs(newTabs);
+    onUpdate(JSON.stringify(newTabs));
+    setActiveTab(name);
+    setNewTabName("");
+    setIsAddingTab(false);
   };
 
   return (
     <div className="pt-4 mt-4 border-t border-border/60 space-y-4">
       {/* Notas e links — sempre visível */}
       <div>
-        <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+        <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
           <FileText className="w-4 h-4 text-primary" /> Textos e Links do Projeto
         </h4>
+        
+        {/* Guias/Tabs */}
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          {Object.keys(tabs).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={cn(
+                "px-3 py-1.5 text-xs font-medium rounded-lg transition-colors border",
+                activeTab === tab
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card border-border hover:bg-muted text-muted-foreground"
+              )}
+            >
+              {tab}
+            </button>
+          ))}
+
+          {isAddingTab ? (
+            <form onSubmit={handleAddTab} className="flex items-center gap-1">
+              <input
+                autoFocus
+                value={newTabName}
+                onChange={e => setNewTabName(e.target.value)}
+                placeholder="Nome da guia..."
+                className="w-28 px-2 py-1.5 text-xs rounded-md border border-border bg-background focus:outline-none focus:border-primary"
+                onBlur={() => {
+                  if (!newTabName.trim()) setIsAddingTab(false);
+                }}
+              />
+            </form>
+          ) : (
+            <button
+              onClick={() => setIsAddingTab(true)}
+              className="w-7 h-7 flex items-center justify-center rounded-lg border border-dashed border-border text-muted-foreground hover:bg-primary hover:text-primary hover:border-primary transition-colors"
+              title="Nova guia"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* Textarea: increased height and leading-relaxed for spacing */}
         <textarea
-          value={notes}
+          value={tabs[activeTab] || ""}
           onChange={handleNotesChange}
-          placeholder="Anote links, referências, briefings e informações importantes..."
-          className="w-full h-28 px-3 py-2 text-sm rounded-xl border border-border bg-background focus:outline-none focus:border-primary resize-none"
+          placeholder={`Anote links, referências e informações em '${activeTab}'...`}
+          className="w-full min-h-[200px] leading-relaxed px-4 py-3 text-sm rounded-xl border border-border bg-background focus:outline-none focus:border-primary resize-y"
         />
         <div className="flex gap-2 mt-2">
           <input
@@ -485,7 +566,7 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
             onClick={addLink}
             className="px-3 py-2 rounded-xl bg-primary-soft text-primary hover:bg-primary/20 transition-colors text-sm font-medium"
           >
-            +
+            <Plus className="w-4 h-4" />
           </button>
         </div>
       </div>

@@ -730,23 +730,6 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
           <div className="ml-auto flex items-center gap-1">
             <button
               type="button"
-              onClick={copyText}
-              title="Copiar texto"
-              className="w-7 h-7 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-            >
-              <Copy className="w-3.5 h-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={clearText}
-              title="Limpar guia atual"
-              className="w-7 h-7 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-            >
-              <Eraser className="w-3.5 h-3.5" />
-            </button>
-            <div className="w-px h-4 bg-border/60 mx-1" />
-            <button
-              type="button"
               onClick={() => setManageTabsOpen(true)}
               className="w-7 h-7 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-muted transition-colors"
               title="Gerenciar guias"
@@ -840,9 +823,31 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
 
             {/* Remove Format */}
             <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => execNote("removeFormat")} title="Remover formatação"
-              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground ml-auto">
+              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-muted transition-colors text-muted-foreground ml-auto">
               <X className="w-4 h-4" />
             </button>
+
+            <span className="w-px h-5 bg-border shrink-0" />
+
+            {/* Copy and Clear */}
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={copyText}
+                title="Copiar texto"
+                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-muted-foreground"
+              >
+                <Copy className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={clearText}
+                title="Limpar guia atual"
+                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground"
+              >
+                <Eraser className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -21,6 +21,7 @@ export interface Client {
   workspace: Workspace; // usually 'saficos'
   createdAt: string;
   notes?: string; // Project notes/links
+  isArchived?: boolean;
 }
 
 export interface Cycle {

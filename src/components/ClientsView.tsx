@@ -3,7 +3,7 @@ import { useFocoData } from "@/hooks/useFocoData";
 import { Workspace } from "@/lib/types";
 import { ensureCycle, clientProgress, fmtDate, fmtDateLong, todayISO } from "@/lib/cycles";
 import { TaskItem } from "./TaskItem";
-import { Plus, Trash2, ChevronDown, ChevronRight, X, Cloud, CloudOff, Loader2, UploadCloud, FileText, File, Copy, Eraser, Settings, ArrowUp, ArrowDown, NotebookPen, Search, SortAsc, Clock } from "lucide-react";
+import { Plus, Trash2, ChevronDown, ChevronRight, X, Cloud, CloudOff, Loader2, UploadCloud, FileText, File, Copy, Eraser, Settings, ArrowUp, ArrowDown, NotebookPen, Search, SortAsc, Clock, Archive, Library } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGoogleDrive } from "@/hooks/useGoogleDrive";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ export function ClientsView({ workspace, initialOpenId }: { workspace: Workspace
   const [openId, setOpenId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"deadline" | "created">("deadline");
+  const [showArchived, setShowArchived] = useState(false);
 
   const wsClients = clients.filter(c => c.workspace === workspace);
   
@@ -123,11 +124,26 @@ export function ClientsView({ workspace, initialOpenId }: { workspace: Workspace
           >
             <Plus className="w-3.5 h-3.5" /> Recentes
           </button>
+          
+          <div className="w-px h-6 bg-border/40 mx-1 hidden md:block" />
+          
+          <button
+            onClick={() => setShowArchived(!showArchived)}
+            className={cn(
+              "flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all border",
+              showArchived ? "bg-amber-500 text-white border-amber-500" : "bg-background text-muted-foreground border-border hover:bg-muted"
+            )}
+            title={showArchived ? "Ver ativos" : "Ver arquivados"}
+          >
+            {showArchived ? <Library className="w-3.5 h-3.5" /> : <Archive className="w-3.5 h-3.5" />}
+            {showArchived ? "Arquivados" : "Arquivo"}
+          </button>
         </div>
       </div>
 
       <div className="space-y-3">
         {wsClients
+          .filter(c => !!c.isArchived === showArchived)
           .filter(c => c.name.toLowerCase().includes(search.toLowerCase()))
           .sort((a, b) => {
             if (sortBy === "deadline") {
@@ -217,13 +233,19 @@ export function ClientsView({ workspace, initialOpenId }: { workspace: Workspace
                         onClick={() => setEditingClient(c)}
                         className="hover:text-primary transition-colors flex items-center gap-1"
                       >
-                        <Settings className="w-3.5 h-3.5" /> Editar projeto
+                        <Settings className="w-3.5 h-3.5" /> Editar
+                      </button>
+                      <button
+                        onClick={() => updateClient(c.id, { isArchived: !c.isArchived })}
+                        className="hover:text-amber-500 transition-colors flex items-center gap-1"
+                      >
+                        <Archive className="w-3.5 h-3.5" /> {c.isArchived ? "Desarquivar" : "Arquivar"}
                       </button>
                       <button
                         onClick={() => { if (confirm(`Remover ${c.name}?`)) removeClient(c.id); }}
                         className="hover:text-destructive transition-colors flex items-center gap-1"
                       >
-                        <Trash2 className="w-3.5 h-3.5" /> Remover projeto
+                        <Trash2 className="w-3.5 h-3.5" /> Remover
                       </button>
                     </div>
                   </div>

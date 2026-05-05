@@ -848,46 +848,93 @@ function ProjectNotesEditor({ client, onUpdate }: { client: Client; onUpdate: (n
           className="min-h-[200px] max-h-[500px] overflow-y-auto px-4 py-3 text-sm leading-relaxed focus:outline-none order-1"
         />
         
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 p-2 bg-muted/20 border-t border-border/40 order-2">
-          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none pb-1 sm:pb-0">
-            <button onClick={() => exec("bold")} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background text-xs font-bold shrink-0">B</button>
-            <button onClick={() => exec("italic")} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background text-xs italic font-serif shrink-0">I</button>
-            <button onClick={() => {
-              const url = prompt("URL:");
-              if (url) exec("createLink", url);
-            }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background shrink-0"><Hash className="w-3.5 h-3.5" /></button>
-            
-            <div className="w-px h-4 bg-border/60 mx-1 shrink-0" />
-            
-            <div className="flex items-center gap-1 shrink-0">
+        <div className="flex flex-col gap-2 p-2 bg-muted/20 border-t border-border/40 order-2">
+          <div className="flex flex-wrap items-center gap-1.5">
+            {/* Formatting Group */}
+            <div className="flex items-center gap-0.5 bg-background/50 p-1 rounded-lg border border-border/40">
+              <button onClick={() => exec("bold")} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-background text-xs font-bold" title="Negrito">B</button>
+              <button onClick={() => exec("italic")} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-background text-xs italic font-serif" title="Itálico">I</button>
+              <button onClick={() => exec("underline")} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-background text-xs underline" title="Sublinhado">U</button>
+            </div>
+
+            {/* Case Group */}
+            <div className="flex items-center gap-0.5 bg-background/50 p-1 rounded-lg border border-border/40">
+              <button 
+                onClick={() => {
+                  const sel = window.getSelection()?.toString();
+                  if (sel) document.execCommand("insertText", false, sel.toUpperCase());
+                }} 
+                className="px-2 h-8 flex items-center justify-center rounded-md hover:bg-background text-[10px] font-bold" title="MAIÚSCULAS"
+              >
+                MAI
+              </button>
+              <button 
+                onClick={() => {
+                  const sel = window.getSelection()?.toString();
+                  if (sel) document.execCommand("insertText", false, sel.toLowerCase());
+                }} 
+                className="px-2 h-8 flex items-center justify-center rounded-md hover:bg-background text-[10px]" title="minúsculas"
+              >
+                min
+              </button>
+            </div>
+
+            <button onClick={() => exec("removeFormat")} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background text-muted-foreground" title="Limpar Formatação"><Eraser className="w-4 h-4" /></button>
+
+            <div className="w-px h-6 bg-border/60 mx-1 hidden sm:block" />
+
+            {/* Colors */}
+            <div className="flex items-center gap-1 bg-background/40 p-1 rounded-lg border border-border/20">
+              <span className="text-[9px] font-bold text-muted-foreground uppercase mr-1 ml-0.5">Texto</span>
               {NOTE_TEXT_COLORS.map(c => (
-                <button key={c.color} onClick={() => exec("foreColor", c.color)} className="w-5 h-5 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: c.color }} title={`Cor: ${c.label}`} />
+                <button key={c.color} onClick={() => exec("foreColor", c.color)} className="w-4 h-4 rounded-full border border-white/20" style={{ backgroundColor: c.color }} />
               ))}
             </div>
 
-            <div className="w-px h-4 bg-border/60 mx-1 shrink-0" />
-
-            <div className="flex items-center gap-1 shrink-0">
+            <div className="flex items-center gap-1 bg-background/40 p-1 rounded-lg border border-border/20">
+              <span className="text-[9px] font-bold text-muted-foreground uppercase mr-1 ml-0.5">Fundo</span>
               {NOTE_HIGHLIGHT_COLORS.map(c => (
-                <button key={c.color} onClick={() => exec("hiliteColor", c.color)} className="w-5 h-5 rounded border border-white/20 shadow-sm" style={{ backgroundColor: c.color }} title={`Destaque: ${c.label}`} />
+                <button key={c.color} onClick={() => exec("hiliteColor", c.color)} className="w-4 h-4 rounded border border-white/20" style={{ backgroundColor: c.color }} />
               ))}
             </div>
 
-            <div className="w-px h-4 bg-border/60 mx-1 shrink-0" />
-            
-            <button onClick={() => exec("removeFormat")} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background shrink-0" title="Limpar formatação"><Eraser className="w-3.5 h-3.5" /></button>
-            <button onClick={() => {
-              if (editorRef.current) {
-                navigator.clipboard.writeText(editorRef.current.innerText);
-                toast.success("Copiado!");
-              }
-            }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background shrink-0" title="Copiar tudo"><Copy className="w-3.5 h-3.5" /></button>
+            <div className="flex-1 min-w-[20px]" />
+
+            {/* Final Actions */}
+            <div className="flex items-center gap-1">
+              <button 
+                onClick={() => {
+                  if (confirm("Apagar todo o conteúdo desta guia?")) {
+                    if (editorRef.current) {
+                      editorRef.current.innerHTML = "";
+                      handleNotesInput();
+                    }
+                  }
+                }} 
+                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors" 
+                title="Apagar tudo"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+              <button 
+                onClick={() => {
+                  if (editorRef.current) {
+                    navigator.clipboard.writeText(editorRef.current.innerText);
+                    toast.success("Conteúdo copiado!");
+                  }
+                }} 
+                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors" 
+                title="Copiar tudo"
+              >
+                <Copy className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
-          <div className="flex-1" />
-          
-          <div className="flex items-center justify-end px-1">
-             <span className="text-[9px] text-muted-foreground flex items-center gap-1 whitespace-nowrap"><Check className="w-2.5 h-2.5" /> Salva ao clicar fora</span>
+          <div className="flex items-center justify-end px-1 pt-1 border-t border-border/10">
+             <span className="text-[9px] text-muted-foreground flex items-center gap-1 whitespace-nowrap uppercase tracking-tighter font-bold">
+               <Check className="w-2.5 h-2.5 text-emerald-500" /> Salva ao clicar fora
+             </span>
           </div>
         </div>
       </div>

@@ -740,7 +740,7 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
         </div>
 
         {/* Rich text editor with formatting toolbar */}
-        <div className="rounded-xl border border-border focus-within:border-primary transition-colors overflow-hidden bg-background flex flex-col h-[350px]">
+        <div className="rounded-xl border border-border focus-within:border-primary transition-colors overflow-hidden bg-background flex flex-col h-[500px] md:h-[350px]">
           <div
             ref={editorRef}
             contentEditable
@@ -751,7 +751,7 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
             className="w-full flex-1 overflow-y-auto leading-relaxed px-4 py-3 text-sm focus:outline-none bg-background text-foreground"
           />
           {/* Formatting toolbar - optimized for touch/typing with larger gaps */}
-          <div className="flex flex-wrap items-center gap-4 px-3 py-2 bg-muted/50 border-t border-border">
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 px-3 py-3 md:py-2 bg-muted/50 border-t border-border">
             
             {/* Bold / Italic / Underline */}
             <div className="flex items-center gap-1">
@@ -819,11 +819,11 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
               </div>
             </div>
 
-            <div className="flex-1" />
+            <div className="hidden md:block flex-1" />
 
             {/* Remove Format */}
             <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => execNote("removeFormat")} title="Remover formatação"
-              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-muted transition-colors text-muted-foreground ml-auto">
+              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-muted transition-colors text-muted-foreground md:ml-auto">
               <X className="w-4 h-4" />
             </button>
 

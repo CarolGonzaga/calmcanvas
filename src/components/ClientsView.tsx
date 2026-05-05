@@ -158,7 +158,7 @@ export function ClientsView({ workspace, initialOpenId }: { workspace: Workspace
 
 function QuickAddTask({ onAdd, cycleEnd }: { onAdd: (data: { name: string; dueDate?: string; isReport?: boolean; urgency?: "urgent" | "today" | "whenever" }) => void; cycleEnd: string }) {
   const [v, setV] = useState("");
-  const [due, setDue] = useState("");
+  const [due, setDue] = useState(todayISO());
   const [isReport, setIsReport] = useState(false);
   const [urgency, setUrgency] = useState<"urgent" | "today" | "whenever">("whenever");
 
@@ -174,7 +174,7 @@ function QuickAddTask({ onAdd, cycleEnd }: { onAdd: (data: { name: string; dueDa
         e.preventDefault();
         if (!v.trim()) return;
         onAdd({ name: v.trim(), dueDate: due || undefined, isReport, urgency });
-        setV(""); setDue(""); setIsReport(false); setUrgency("whenever");
+        setV(""); setDue(todayISO()); setIsReport(false); setUrgency("whenever");
       }}
       className="flex flex-col gap-3"
     >
@@ -188,6 +188,7 @@ function QuickAddTask({ onAdd, cycleEnd }: { onAdd: (data: { name: string; dueDa
         <input
           type="date"
           value={due}
+          min={todayISO()}
           max={cycleEnd}
           onChange={e => setDue(e.target.value)}
           title="Prazo (opcional)"

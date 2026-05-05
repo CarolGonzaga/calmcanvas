@@ -182,6 +182,7 @@ function EditTaskModal({ task, onClose, onSave }: {
             <input
               type="date"
               value={dueDate}
+              min={todayISO()}
               onChange={e => setDueDate(e.target.value)}
               className="mt-1 w-full px-4 py-2.5 rounded-xl bg-background border border-border focus:border-primary focus:outline-none"
             />

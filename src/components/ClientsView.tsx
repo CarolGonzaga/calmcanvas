@@ -48,7 +48,14 @@ export function ClientsView({ workspace, initialOpenId }: { workspace: Workspace
         {wsClients.map(c => {
           const cycle = ensureCycle(c);
           const p = clientProgress(c.id, cycle.id);
-          const cycleTasks = tasks.filter(t => t.cycleId === cycle.id);
+          const cycleTasks = tasks
+            .filter(t => t.cycleId === cycle.id)
+            .sort((a, b) => {
+              if (!a.dueDate && !b.dueDate) return 0;
+              if (!a.dueDate) return 1;
+              if (!b.dueDate) return -1;
+              return a.dueDate < b.dueDate ? -1 : 1;
+            });
           const open = openId === c.id;
           return (
             <div key={c.id} className="soft-card overflow-hidden">

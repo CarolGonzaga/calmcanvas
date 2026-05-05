@@ -53,7 +53,7 @@ export function TaskItem({ task, clientName, onToggle, showClient, hideUrgency, 
           done
             ? "bg-muted/40 border-transparent"
             : overdue
-            ? "bg-card border-warning/40"
+            ? "bg-red-50/50 dark:bg-red-500/5 border-red-200 dark:border-red-500/30 shadow-sm"
             : "bg-card border-border/60 hover:border-primary/40 hover:shadow-[var(--shadow-soft)]"
         )}
       >
@@ -88,8 +88,8 @@ export function TaskItem({ task, clientName, onToggle, showClient, hideUrgency, 
               {showClient && clientName && <span className="font-medium cursor-pointer hover:underline" onClick={(e) => { e.stopPropagation(); onNavigate?.(); }}>{clientName}</span>}
               {showClient && clientName && task.dueDate && <span>·</span>}
               {task.dueDate && (
-                <span className={cn(overdue && "text-warning-foreground font-medium")}>
-                  {overdue ? "esperando desde " : "para "}{fmtDate(task.dueDate)}
+                <span className={cn(overdue && "text-red-500 font-semibold uppercase text-[10px] tracking-wider")}>
+                  {overdue ? "⚠️ atrasada desde " : "para "}{fmtDate(task.dueDate)}
                 </span>
               )}
             </div>

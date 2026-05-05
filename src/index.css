@@ -176,3 +176,17 @@
     display: none;
   }
 }
+
+/* Rich text editor (contentEditable) fixes */
+[contenteditable]:empty:before {
+  content: attr(data-placeholder);
+  color: hsl(var(--muted-foreground) / 0.5);
+  pointer-events: none;
+}
+
+/* Prevent browser from adding white background to child divs on Enter */
+[contenteditable] > div,
+[contenteditable] > p,
+[contenteditable] > span {
+  background: transparent !important;
+}

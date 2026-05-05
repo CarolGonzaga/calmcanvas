@@ -548,7 +548,7 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
   const [manageTabsOpen, setManageTabsOpen] = useState(false);
 
   const copyText = () => {
-    const text = editorRef.current?.innerText || tabs[activeTab] || "";
+    const text = editorRef.current?.innerText || "";
     navigator.clipboard.writeText(text);
     toast.success("Texto copiado!");
   };
@@ -564,6 +564,11 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
   const execNote = (cmd: string, val?: string) => {
     editorRef.current?.focus();
     document.execCommand(cmd, false, val);
+    // save after formatting
+    const html = editorRef.current?.innerHTML || "";
+    const newTabs = { ...tabs, [activeTab]: html };
+    setTabs(prev => ({ ...prev, [activeTab]: html }));
+    onUpdate(JSON.stringify(newTabs));
   };
 
   const applyCaseNote = (upper: boolean) => {
@@ -572,14 +577,25 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
     document.execCommand("insertText", false, upper ? sel.toString().toUpperCase() : sel.toString().toLowerCase());
   };
 
+  // Save content from editor to tabs WITHOUT causing re-render of editor
   const handleNotesInput = () => {
     const html = editorRef.current?.innerHTML || "";
-    const newTabs = { ...tabs, [activeTab]: html };
-    setTabs(newTabs);
-    onUpdate(JSON.stringify(newTabs));
+    // Update tabs ref-style: use functional update so React batches this properly
+    // but DON'T cause a re-render that resets innerHTML
+    onUpdate(JSON.stringify({ ...tabs, [activeTab]: html }));
+    // Update the tabs object in-place without triggering re-render of this effect
+    tabs[activeTab] = html;
   };
 
-  // sync editorRef content when tab changes
+  // Handle Enter key: insert <br> instead of <div> to avoid browser white-line bug
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      document.execCommand("insertLineBreak");
+    }
+  };
+
+  // sync editorRef content when tab changes — IMPERATIVE, no dangerouslySetInnerHTML
   useEffect(() => {
     if (editorRef.current) {
       editorRef.current.innerHTML = tabs[activeTab] || "";
@@ -721,14 +737,16 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
         </div>
 
         {/* Rich text editor with formatting toolbar */}
-        <div className="rounded-xl border border-border focus-within:border-primary transition-colors overflow-hidden">
+        <div className="rounded-xl border border-border focus-within:border-primary transition-colors overflow-hidden bg-background">
           <div
             ref={editorRef}
             contentEditable
+            suppressContentEditableWarning
             onInput={handleNotesInput}
-            dangerouslySetInnerHTML={{ __html: tabs[activeTab] || "" }}
-            placeholder={`Anote links, referências e informações em '${activeTab}'...`}
-            className="w-full min-h-[260px] leading-relaxed px-4 py-3 text-sm bg-background focus:outline-none resize-none empty:before:content-[attr(placeholder)] empty:before:text-muted-foreground/50"
+            onKeyDown={handleKeyDown}
+            data-placeholder={`Anote links, referências e informações em '${activeTab}'...`}
+            className="w-full min-h-[260px] leading-relaxed px-4 py-3 text-sm focus:outline-none whitespace-pre-wrap break-words"
+            style={{ minHeight: 260 }}
           />
           {/* Formatting toolbar */}
           <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 bg-muted/50 border-t border-border">

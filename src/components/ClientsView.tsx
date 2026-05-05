@@ -186,24 +186,40 @@ function QuickAddTask({ onAdd, cycleEnd }: { onAdd: (data: { name: string; dueDa
           <Plus className="w-4 h-4" />
         </button>
       </div>
-      <div className="flex items-center gap-3 pl-1">
-        {urgencyOptions.map(opt => (
-          <button
-            key={opt.value}
-            type="button"
-            onClick={() => setUrgency(opt.value)}
-            className={`text-xs px-2.5 py-1 rounded-full border transition-all ${
-              urgency === opt.value
-                ? "border-primary bg-primary/10 text-primary font-semibold"
-                : "border-border text-muted-foreground hover:border-muted-foreground"
-            }`}
-          >
-            {opt.label}
-          </button>
-        ))}
-        <label className="flex items-center gap-1.5 text-xs text-muted-foreground select-none cursor-pointer ml-auto">
-          <input type="checkbox" checked={isReport} onChange={e => setIsReport(e.target.checked)} />
-          📋 relatório
+      <div className="flex flex-wrap items-center gap-3 sm:gap-4 pl-1 mt-1">
+        <div className="flex items-center gap-2">
+          {urgencyOptions.map(opt => {
+            const [emoji, ...labelParts] = opt.label.split(" ");
+            const label = labelParts.join(" ");
+            const isActive = urgency === opt.value;
+            
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setUrgency(opt.value)}
+                className={cn(
+                  "flex flex-col items-center justify-center min-w-[64px] py-2 px-1 rounded-2xl border transition-all",
+                  isActive
+                    ? "border-primary/30 bg-primary/5 text-primary shadow-sm scale-105"
+                    : "border-border/40 text-muted-foreground hover:border-muted-foreground/40 hover:bg-muted/30"
+                )}
+              >
+                <span className="text-lg mb-0.5 filter drop-shadow-sm">{emoji}</span>
+                <span className="text-[10px] font-semibold leading-none">{label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <label className="flex items-center gap-2 text-xs text-muted-foreground select-none cursor-pointer ml-auto bg-muted/30 px-3 py-2 rounded-xl border border-transparent hover:border-border transition-colors">
+          <input 
+            type="checkbox" 
+            checked={isReport} 
+            onChange={e => setIsReport(e.target.checked)}
+            className="rounded border-border text-primary focus:ring-primary"
+          />
+          <span className="flex items-center gap-1">📋 relatório</span>
         </label>
       </div>
     </form>

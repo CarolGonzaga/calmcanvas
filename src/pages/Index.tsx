@@ -25,6 +25,7 @@ const Index = () => {
   const [workspace, setWorkspace] = useState<Workspace>("saficos");
   const { workspaces, syncAllCycles } = useFocoData();
   const [view, setView] = useState<View>("home");
+  const [targetClientId, setTargetClientId] = useState<string | null>(null);
 
   useEffect(() => {
     if (workspaces.length > 0 && !workspaces.find(w => w.id === workspace)) {
@@ -67,12 +68,12 @@ const Index = () => {
   }, [workspace]);
 
   const renderView = () => {
-    if (view === "clients") return <ClientsView workspace={workspace} />;
+    if (view === "clients") return <ClientsView workspace={workspace} initialOpenId={targetClientId || undefined} />;
     if (view === "calendar") return <CalendarView workspace={workspace} />;
     if (view === "reports") return <ReportsView workspace={workspace} />;
     if (view === "notes") return <NotesView workspace={workspace} title="Notas Livres" subtitle="Seu espaço livre. Anote, liste, respira." />;
     if (view === "receipts") return <ReceiptsView workspace={workspace} />;
-    return <Dashboard workspace={workspace} onNavigateToProject={(id) => setView("clients")} />;
+    return <Dashboard workspace={workspace} onNavigateToProject={(id) => { setTargetClientId(id); setView("clients"); }} />;
   };
 
   const isDark = theme === "dark";

@@ -9,13 +9,19 @@ import { useGoogleDrive } from "@/hooks/useGoogleDrive";
 import { toast } from "sonner";
 import { Client } from "@/lib/types";
 
-export function ClientsView({ workspace }: { workspace: Workspace }) {
+export function ClientsView({ workspace, initialOpenId }: { workspace: Workspace; initialOpenId?: string }) {
   const { clients, tasks, addClient, removeClient, toggleTask, addTask, removeTask, updateClient } = useFocoData();
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
 
   const wsClients = clients.filter(c => c.workspace === workspace);
+  
+  useEffect(() => {
+    if (initialOpenId) {
+      setOpenId(initialOpenId);
+    }
+  }, [initialOpenId]);
 
   return (
     <div className="space-y-6 animate-fade-up">

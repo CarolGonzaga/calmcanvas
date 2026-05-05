@@ -77,7 +77,7 @@ export function TaskItem({ task, clientName, onToggle, showClient, hideUrgency, 
         {/* Content */}
         <div 
           className="flex-1 min-w-0 cursor-pointer" 
-          onClick={() => setIsEditing(true)}
+          onClick={() => onNavigate ? onNavigate() : setIsEditing(true)}
         >
           <div 
             className={cn("text-sm md:text-base font-medium leading-snug break-words", done && "line-through text-muted-foreground")}

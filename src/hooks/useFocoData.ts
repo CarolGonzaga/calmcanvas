@@ -11,11 +11,28 @@ export function useFocoData() {
     return subscribeToFocoData(() => setTick(t => t + 1));
   }, []);
 
+  const workspaces = store.getWorkspaces();
   const clients = store.getClients();
   const tasks = store.getTasks();
   const cycles = store.getCycles();
 
   const refresh = useCallback(() => emit(), []);
+
+  const addWorkspace = (data: Omit<import('@/lib/types').WorkspaceData, 'id'>) => {
+    const w = { ...data, id: uid() };
+    store.setWorkspaces([...store.getWorkspaces(), w]);
+    emit();
+  };
+
+  const updateWorkspace = (id: string, patch: Partial<import('@/lib/types').WorkspaceData>) => {
+    store.setWorkspaces(store.getWorkspaces().map(w => w.id === id ? { ...w, ...patch } : w));
+    emit();
+  };
+
+  const removeWorkspace = (id: string) => {
+    store.setWorkspaces(store.getWorkspaces().filter(w => w.id !== id));
+    emit();
+  };
 
   const addClient = (data: Omit<Client, "id" | "createdAt" | "workspace"> & { workspace?: Workspace }) => {
     const c: Client = {
@@ -96,7 +113,8 @@ export function useFocoData() {
   };
 
   return {
-    clients, tasks, cycles,
+    workspaces, clients, tasks, cycles,
+    addWorkspace, updateWorkspace, removeWorkspace,
     addClient, updateClient, removeClient,
     addTask, updateTask, removeTask, toggleTask,
     refresh, syncAllCycles: () => { syncAllCycles(); emit(); },

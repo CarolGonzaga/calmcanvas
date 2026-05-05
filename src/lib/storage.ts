@@ -1,8 +1,9 @@
 // Storage layer using localStorage with typed helpers
-import { Client, Task, Cycle, Workspace, NoteBlock } from "./types";
+import { Client, Task, Cycle, Workspace, WorkspaceData, NoteBlock } from "./types";
 
 const KEYS = {
   clients: "foco.clients",
+  workspaces: "foco.workspaces",
   tasks: "foco.tasks",
   cycles: "foco.cycles",
   notes: "foco.notes",
@@ -23,6 +24,12 @@ function write<T>(key: string, val: T) {
 }
 
 export const store = {
+  getWorkspaces: (): WorkspaceData[] => read(KEYS.workspaces, [
+    { id: "saficos", name: "Lendo Sáficos", sub: "projetos & ciclos", icon: "BookHeart" },
+    { id: "mariana", name: "Trabalho com Mariana", sub: "equipe", icon: "Users" },
+    { id: "publique", name: "Publique", sub: "notas livres", icon: "Sparkles" }
+  ]),
+  setWorkspaces: (w: WorkspaceData[]) => write(KEYS.workspaces, w),
   getClients: (): Client[] => read(KEYS.clients, []),
   setClients: (c: Client[]) => write(KEYS.clients, c),
 

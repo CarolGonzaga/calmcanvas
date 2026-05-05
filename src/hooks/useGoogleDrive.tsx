@@ -49,6 +49,7 @@ export function GoogleDriveProvider({ children }: { children: React.ReactNode })
           store.setTasks(db.tasks || []);
           store.setCycles(db.cycles || []);
           store.setReportsSent(db.reportsSent || {});
+          if (db.workspaces) store.setWorkspaces(db.workspaces);
           
           if (db.notes) {
             Object.keys(db.notes).forEach(ws => {
@@ -83,11 +84,8 @@ export function GoogleDriveProvider({ children }: { children: React.ReactNode })
         tasks: store.getTasks(),
         cycles: store.getCycles(),
         reportsSent: store.getReportsSent(),
-        notes: {
-          saficos: store.getNotes("saficos"),
-          mariana: store.getNotes("mariana"),
-          publique: store.getNotes("publique"),
-        }
+        workspaces: store.getWorkspaces(),
+        notes: store.getWorkspaces().reduce((acc, ws) => { acc[ws.id] = store.getNotes(ws.id); return acc; }, {} as Record<string, any>)
       };
       await ds.saveDatabase(folderId, db);
     } catch(e) {

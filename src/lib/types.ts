@@ -1,4 +1,11 @@
-export type Workspace = "publique" | "mariana" | "saficos";
+export type Workspace = string;
+
+export interface WorkspaceData {
+  id: string;
+  name: string;
+  icon?: string;
+  sub?: string;
+}
 
 export type TaskStatus = "todo" | "doing" | "done";
 

@@ -17,8 +17,13 @@ type View = "home" | "clients" | "calendar" | "reports" | "notes";
 const Index = () => {
   const { driveService, isSyncing, login, logout } = useGoogleDrive();
   const [workspace, setWorkspace] = useState<Workspace>("saficos");
+  const { workspaces, syncAllCycles } = useFocoData();
   const [view, setView] = useState<View>("home");
-  const { syncAllCycles } = useFocoData();
+  useEffect(() => {
+    if (!workspaces.find(w => w.id === workspace) && workspaces.length > 0) {
+      setWorkspace(workspaces[0].id);
+    }
+  }, [workspaces, workspace]);
 
   // seed example data on first visit
   useEffect(() => {
@@ -55,7 +60,7 @@ const Index = () => {
     { id: "home" as View, label: "Hoje", icon: Home },
     { id: "clients" as View, label: "Projetos", icon: Users },
     { id: "calendar" as View, label: "Calendário", icon: Calendar },
-    ...(workspace === "saficos" ? [{ id: "reports" as View, label: "Relatórios", icon: FileText }] : []),
+    { id: "reports" as View, label: "Relatórios", icon: FileText },
     { id: "notes" as View, label: "Notas livres", icon: FileText },
   ];
 

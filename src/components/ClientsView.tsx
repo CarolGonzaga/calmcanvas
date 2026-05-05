@@ -38,11 +38,58 @@ export function ClientsView({ workspace, initialOpenId }: { workspace: Workspace
         </button>
       </div>
 
-      {wsClients.length === 0 && (
-        <div className="soft-card p-10 text-center bg-gradient-soft">
-          <p className="text-muted-foreground">Nenhum projeto ainda. Que tal começar pelo primeiro?</p>
+      <div className="space-y-4">
+        {/* 📋 Tarefas Livres section */}
+        <div className="soft-card p-5 space-y-4 bg-primary/5 border-primary/10">
+          <div className="flex items-center gap-2 mb-2 text-primary font-display text-lg">
+            <NotebookPen className="w-5 h-5" /> Tarefas Livres
+          </div>
+          
+          <div className="space-y-2">
+            {tasks
+              .filter(t => !t.clientId && t.workspace === workspace)
+              .sort((a, b) => {
+                // Same sorting logic as elsewhere
+                if (a.dueDate !== b.dueDate) {
+                  if (!a.dueDate) return 1;
+                  if (!b.dueDate) return -1;
+                  return a.dueDate < b.dueDate ? -1 : 1;
+                }
+                const urgencyScore = { urgent: 0, today: 1, whenever: 2 };
+                const sA = urgencyScore[a.urgency || "whenever"];
+                const sB = urgencyScore[b.urgency || "whenever"];
+                return sA - sB;
+              })
+              .map(t => (
+                <div key={t.id} className="flex items-center gap-2">
+                  <div className="flex-1">
+                    <TaskItem task={t} onToggle={toggleTask} />
+                  </div>
+                  <button
+                    onClick={() => removeTask(t.id)}
+                    className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+                    aria-label="Remover tarefa"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+          </div>
+
+          <div className="pt-2 border-t border-primary/10">
+            <QuickAddTask
+              showRecurring={true}
+              onAdd={(data) => addTask({ ...data, workspace })}
+            />
+          </div>
         </div>
-      )}
+
+        {wsClients.length === 0 && (
+          <div className="soft-card p-10 text-center bg-gradient-soft">
+            <p className="text-muted-foreground">Nenhum projeto ainda. Que tal começar pelo primeiro?</p>
+          </div>
+        )}
+      </div>
 
       <div className="space-y-3">
         {wsClients.map(c => {
@@ -163,10 +210,15 @@ export function ClientsView({ workspace, initialOpenId }: { workspace: Workspace
   );
 }
 
-function QuickAddTask({ onAdd, cycleEnd }: { onAdd: (data: { name: string; dueDate?: string; isReport?: boolean; urgency?: "urgent" | "today" | "whenever" }) => void; cycleEnd: string }) {
+function QuickAddTask({ onAdd, cycleEnd, showRecurring = false }: { 
+  onAdd: (data: { name: string; dueDate?: string; isReport?: boolean; urgency?: "urgent" | "today" | "whenever"; isRecurring?: boolean }) => void; 
+  cycleEnd?: string;
+  showRecurring?: boolean;
+}) {
   const [v, setV] = useState("");
   const [due, setDue] = useState(todayISO());
   const [isReport, setIsReport] = useState(false);
+  const [isRecurring, setIsRecurring] = useState(false);
   const [urgency, setUrgency] = useState<"urgent" | "today" | "whenever">("whenever");
 
   const urgencyOptions: { value: "urgent" | "today" | "whenever"; label: string }[] = [
@@ -180,8 +232,8 @@ function QuickAddTask({ onAdd, cycleEnd }: { onAdd: (data: { name: string; dueDa
       onSubmit={(e) => {
         e.preventDefault();
         if (!v.trim()) return;
-        onAdd({ name: v.trim(), dueDate: due || undefined, isReport, urgency });
-        setV(""); setDue(todayISO()); setIsReport(false); setUrgency("whenever");
+        onAdd({ name: v.trim(), dueDate: due || undefined, isReport, urgency, isRecurring });
+        setV(""); setDue(todayISO()); setIsReport(false); setUrgency("whenever"); setIsRecurring(false);
       }}
       className="flex flex-col gap-3"
     >
@@ -189,7 +241,7 @@ function QuickAddTask({ onAdd, cycleEnd }: { onAdd: (data: { name: string; dueDa
         <input
           value={v}
           onChange={e => setV(e.target.value)}
-          placeholder="Adicionar tarefa neste ciclo…"
+          placeholder="Adicionar tarefa…"
           className="w-full px-4 py-2.5 rounded-xl bg-card border border-border focus:border-primary focus:outline-none text-sm transition-colors"
         />
         <input
@@ -203,7 +255,7 @@ function QuickAddTask({ onAdd, cycleEnd }: { onAdd: (data: { name: string; dueDa
         />
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <button 
           type="submit" 
           className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary-soft text-primary hover:bg-primary hover:text-primary-foreground transition-all shadow-sm"
@@ -212,15 +264,31 @@ function QuickAddTask({ onAdd, cycleEnd }: { onAdd: (data: { name: string; dueDa
           <span className="text-sm font-medium">Adicionar</span>
         </button>
 
-        <label className="flex items-center gap-2 text-xs text-muted-foreground select-none cursor-pointer bg-muted/30 px-3 py-2.5 rounded-xl border border-transparent hover:border-border transition-colors h-[42px]">
-          <input 
-            type="checkbox" 
-            checked={isReport} 
-            onChange={e => setIsReport(e.target.checked)}
-            className="rounded border-border text-primary focus:ring-primary"
-          />
-          <span className="flex items-center gap-1">📋 relatório</span>
-        </label>
+        <div className="flex gap-2">
+          {showRecurring && (
+            <label className="flex items-center gap-2 text-xs text-muted-foreground select-none cursor-pointer bg-muted/30 px-3 py-2.5 rounded-xl border border-transparent hover:border-border transition-colors h-[42px]">
+              <input 
+                type="checkbox" 
+                checked={isRecurring} 
+                onChange={e => setIsRecurring(e.target.checked)}
+                className="rounded border-border text-primary focus:ring-primary"
+              />
+              <span className="flex items-center gap-1">🔄 diária</span>
+            </label>
+          )}
+
+          {!showRecurring && (
+            <label className="flex items-center gap-2 text-xs text-muted-foreground select-none cursor-pointer bg-muted/30 px-3 py-2.5 rounded-xl border border-transparent hover:border-border transition-colors h-[42px]">
+              <input 
+                type="checkbox" 
+                checked={isReport} 
+                onChange={e => setIsReport(e.target.checked)}
+                className="rounded border-border text-primary focus:ring-primary"
+              />
+              <span className="flex items-center gap-1">📋 relatório</span>
+            </label>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-2">
@@ -269,13 +337,12 @@ function NewClientModal({ workspace, onClose, onSave }: {
   ];
 
   const [quantities, setQuantities] = useState<Record<string, number>>({});
-  const [extras, setExtras] = useState<{ id: string, name: string, qty: number, recurring: boolean, urgency: "urgent" | "today" | "whenever" }[]>(() => {
+  const [extras, setExtras] = useState<{ id: string, name: string, qty: number, urgency: "urgent" | "today" | "whenever" }[]>(() => {
     const defaults = wsData?.defaultTaskTemplate || [];
     return defaults.map(task => ({
       id: Math.random().toString(),
       name: task,
       qty: 1,
-      recurring: true,
       urgency: "whenever" as const,
     }));
   });
@@ -298,7 +365,7 @@ function NewClientModal({ workspace, onClose, onSave }: {
   };
 
   const addExtra = () => {
-    setExtras(prev => [...prev, { id: Math.random().toString(), name: "", qty: 1, recurring: true, urgency: "whenever" }]);
+    setExtras(prev => [...prev, { id: Math.random().toString(), name: "", qty: 1, urgency: "whenever" }]);
   };
 
   const updateExtraUrgency = (id: string, urgency: "urgent" | "today" | "whenever") => {
@@ -336,13 +403,9 @@ function NewClientModal({ workspace, onClose, onSave }: {
     extras.forEach(extra => {
       if (!extra.name.trim() || extra.qty <= 0) return;
       const prefix = extra.urgency === "urgent" ? "[URGENTE] " : extra.urgency === "today" ? "[HOJE] " : "";
-      if (extra.recurring) {
-        for (let i = 0; i < extra.qty; i++) {
-          const name = extra.qty > 1 ? `${extra.name.trim()} (${i + 1}/${extra.qty})` : extra.name.trim();
-          taskTemplate.push(`${prefix}${name}`);
-        }
-      } else {
-        taskTemplate.push(`[ÚNICA] ${prefix}${extra.name.trim()}`);
+      for (let i = 0; i < extra.qty; i++) {
+        const name = extra.qty > 1 ? `${extra.name.trim()} (${i + 1}/${extra.qty})` : extra.name.trim();
+        taskTemplate.push(`${prefix}${name}`);
       }
     });
 
@@ -421,18 +484,7 @@ function NewClientModal({ workspace, onClose, onSave }: {
                   </div>
                 </div>
                 <div className="flex items-center justify-between gap-2 pl-1">
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => toggleExtraRecurring(extra.id)}
-                      className={`relative w-9 h-5 rounded-full transition-colors flex-shrink-0 overflow-hidden ${extra.recurring ? "bg-primary" : "bg-muted-foreground/30"}`}
-                    >
-                      <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${extra.recurring ? "translate-x-4" : "translate-x-0"}`} />
-                    </button>
-                    <span className={`text-xs ${extra.recurring ? "text-primary font-medium" : "text-muted-foreground"}`}>
-                      {extra.recurring ? "Recorrente" : "Única"}
-                    </span>
-                  </div>
+
 
                   <div className="flex gap-1">
                     {urgencyOptions.map(opt => (
@@ -461,9 +513,6 @@ function NewClientModal({ workspace, onClose, onSave }: {
             <Plus className="w-4 h-4" /> Adicionar tarefa extra
           </button>
 
-          <span className="text-xs text-muted-foreground mt-2 block">
-            Tarefas recorrentes são recriadas a cada ciclo. Tarefas únicas aparecem só no primeiro.
-          </span>
         </div>
 
         <div className="flex justify-end gap-2 pt-2">

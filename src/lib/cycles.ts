@@ -129,6 +129,55 @@ export function ensureCycle(client: Client, ref: Date = new Date()): Cycle {
 export function syncAllCycles() {
   const clients = store.getClients();
   for (const c of clients) ensureCycle(c);
+  syncFreeTasks();
+}
+
+/** 
+ * Ensure daily recurring tasks (free tasks) are created for today.
+ * If a recurring task is not completed, it stays (accumulates).
+ * Every day a new instance is created.
+ */
+export function syncFreeTasks() {
+  const today = todayISO();
+  const tasks = store.getTasks();
+  
+  // 1. Find all "definitions" of recurring free tasks (no clientId)
+  // We look at all tasks that were EVER recurring to find the ones currently active.
+  // To avoid re-creating tasks the user deleted, we should ideally have a template list.
+  // But for now, we'll assume any recurring task created in the last 7 days is an "active definition".
+  const recurringTemplates = tasks.filter(t => !t.clientId && t.isRecurring);
+  
+  // Get unique names of active recurring tasks
+  const uniqueNames = Array.from(new Set(recurringTemplates.map(t => t.name)));
+
+  let changed = false;
+  for (const name of uniqueNames) {
+    // Check if an instance already exists for today
+    const existsToday = tasks.find(t => !t.clientId && t.name === name && t.dueDate === today);
+    
+    if (!existsToday) {
+      // Find the most recent instance to copy its properties (workspace, urgency, etc.)
+      const lastInstance = tasks.filter(t => !t.clientId && t.name === name).sort((a,b) => b.createdAt.localeCompare(a.createdAt))[0];
+      
+      if (lastInstance && lastInstance.isRecurring) {
+        tasks.push({
+          id: uid(),
+          workspace: lastInstance.workspace,
+          name: lastInstance.name,
+          status: "todo",
+          urgency: lastInstance.urgency,
+          dueDate: today,
+          isRecurring: true,
+          createdAt: new Date().toISOString(),
+        });
+        changed = true;
+      }
+    }
+  }
+
+  if (changed) {
+    store.setTasks(tasks);
+  }
 }
 
 export function clientProgress(clientId: string, cycleId: string) {

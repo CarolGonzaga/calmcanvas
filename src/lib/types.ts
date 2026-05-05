@@ -42,6 +42,7 @@ export interface Task {
   createdAt: string;
   completedAt?: string;
   isReport?: boolean;
+  isRecurring?: boolean;
   urgency?: "urgent" | "today" | "whenever"; // 1=urgente, 2=pra hoje, 3=sem pressa
   eventId?: string; // Google Calendar event ID
 }

@@ -7,9 +7,8 @@ import { ClientsView } from "@/components/ClientsView";
 import { CalendarView } from "@/components/CalendarView";
 import { ReportsView } from "@/components/ReportsView";
 import { NotesView } from "@/components/NotesView";
-import { ReceiptsView } from "@/components/ReceiptsView";
 import {
-  Home, Users, Calendar, FileText, Link as LinkIcon,
+  Home, Users, Calendar, FileText,
   Cloud, CloudOff, Loader2, Sun, Moon, NotebookPen
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -17,7 +16,7 @@ import { store } from "@/lib/storage";
 import { useFocoData } from "@/hooks/useFocoData";
 import { useGoogleDrive } from "@/hooks/useGoogleDrive";
 
-type View = "home" | "clients" | "calendar" | "reports" | "notes" | "receipts";
+type View = "home" | "clients" | "calendar" | "reports" | "notes";
 
 const Index = () => {
   const { driveService, isSyncing, login, logout } = useGoogleDrive();
@@ -71,7 +70,6 @@ const Index = () => {
     if (view === "calendar") return <CalendarView workspace={workspace} />;
     if (view === "reports") return <ReportsView workspace={workspace} />;
     if (view === "notes") return <NotesView workspace={workspace} title="Notas Livres" subtitle="Seu espaço livre. Anote, liste, respira." />;
-    if (view === "receipts") return <ReceiptsView workspace={workspace} />;
     return <Dashboard workspace={workspace} onNavigateToProject={(id) => { setTargetClientId(id); setView("clients"); }} />;
   };
 

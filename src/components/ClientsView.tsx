@@ -567,8 +567,20 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
   };
 
   const execNote = (cmd: string, val?: string) => {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) {
+      toast.info("Selecione um texto primeiro para formatar");
+      return;
+    }
+    
     editorRef.current?.focus();
     document.execCommand(cmd, false, val);
+    
+    // Clear the selection after applying formatting so that if the user
+    // starts typing immediately, they do so with default formatting.
+    // Wait, let's just collapse to the end so they can continue typing.
+    sel.collapseToEnd();
+    
     // save after formatting
     const html = editorRef.current?.innerHTML || "";
     const newTabs = { ...tabs, [activeTab]: html };
@@ -745,7 +757,7 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
         </div>
 
         {/* Rich text editor with formatting toolbar */}
-        <div className="rounded-xl border border-border focus-within:border-primary transition-colors overflow-hidden bg-background">
+        <div className="rounded-xl border border-border focus-within:border-primary transition-colors overflow-hidden bg-background flex flex-col h-[350px]">
           <div
             ref={editorRef}
             contentEditable
@@ -753,7 +765,7 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
             onInput={handleNotesInput}
             onPaste={handlePaste}
             data-placeholder={`Anote links, referências e informações em '${activeTab}'...`}
-            className="w-full min-h-[260px] leading-relaxed px-4 py-3 text-sm focus:outline-none bg-background text-foreground"
+            className="w-full flex-1 overflow-y-auto leading-relaxed px-4 py-3 text-sm focus:outline-none bg-background text-foreground"
           />
           {/* Formatting toolbar */}
           <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 bg-muted/50 border-t border-border">

@@ -268,7 +268,7 @@ export function ClientsView({ workspace, initialOpenId }: { workspace: Workspace
                     onAdd={(data) => addTask({ ...data, clientId: c.id, cycleId: cycle.id, workspace: c.workspace })}
                   />
 
-                  <ProjectContentLibrary
+                  <ProjectNotesEditor
                     client={c}
                     onUpdate={(notes) => updateClient(c.id, { notes })}
                   />
@@ -706,52 +706,35 @@ Reunião com cliente" />
 }
 
 
-// Migration helper and interfaces moved to top of file
-
-function ProjectContentLibrary({ client, onUpdate }: { client: Client; onUpdate: (notes: string) => void }) {
+function ProjectNotesEditor({ client, onUpdate }: { client: Client; onUpdate: (notes: string) => void }) {
   const { driveService, appFolderId } = useGoogleDrive();
-  const [sections, setSections] = useState(() => parseNotes(client.notes || ""));
-  const [localSearch, setLocalSearch] = useState("");
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("Geral");
+  const [tabs, setTabs] = useState<Record<string, string>>(() => {
+    try {
+      const parsed = JSON.parse(client.notes || '{"Geral": ""}');
+      if (Array.isArray(parsed)) {
+        // Convert from new library format back to tabs
+        const res: Record<string, string> = {};
+        parsed.forEach((s: any) => res[s.title] = s.content);
+        return res;
+      }
+      return parsed;
+    } catch {
+      return { "Geral": client.notes || "" };
+    }
+  });
+
+  const editorRef = useRef<HTMLDivElement>(null);
+  const [isAddingTab, setIsAddingTab] = useState(false);
+  const [newTabName, setNewTabName] = useState("");
+  const [manageTabsOpen, setManageTabsOpen] = useState(false);
   const [files, setFiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const save = (next: ContentSection[]) => {
-    setSections(next);
-    onUpdate(JSON.stringify(next));
-  };
-
-  const addSection = () => {
-    const next = [
-      { id: Math.random().toString(36).slice(2), title: "Nova Seção", content: "", tags: [] },
-      ...sections
-    ];
-    save(next);
-    setEditingId(next[0].id);
-  };
-
-  const updateSection = (id: string, patch: Partial<ContentSection>) => {
-    save(sections.map(s => s.id === id ? { ...s, ...patch } : s));
-  };
-
-  const removeSection = (id: string) => {
-    if (confirm("Excluir esta seção permanentemente?")) {
-      save(sections.filter(s => s.id !== id));
-    }
-  };
-
-  const filtered = sections.filter(s => 
-    s.title.toLowerCase().includes(localSearch.toLowerCase()) ||
-    s.tags.some(t => t.toLowerCase().includes(localSearch.toLowerCase())) ||
-    s.content.toLowerCase().includes(localSearch.toLowerCase())
-  );
-
   useEffect(() => {
-    if (driveService && appFolderId) {
-      loadFiles();
-    }
+    if (driveService && appFolderId) { loadFiles(); }
   }, [driveService, appFolderId, client.name]);
 
   const loadFiles = async () => {
@@ -780,99 +763,131 @@ function ProjectContentLibrary({ client, onUpdate }: { client: Client; onUpdate:
     }
   };
 
+  const handleNotesInput = () => {
+    const html = editorRef.current?.innerHTML || "";
+    const next = { ...tabs, [activeTab]: html };
+    setTabs(next);
+    onUpdate(JSON.stringify(next));
+  };
+
+  useEffect(() => {
+    if (editorRef.current && document.activeElement !== editorRef.current) {
+      editorRef.current.innerHTML = tabs[activeTab] || "";
+    }
+  }, [activeTab, tabs]);
+
+  const handleAddTab = (e: React.FormEvent) => {
+    e.preventDefault();
+    const name = newTabName.trim();
+    if (!name || tabs[name]) return;
+    const next = { ...tabs, [name]: "" };
+    setTabs(next);
+    onUpdate(JSON.stringify(next));
+    setActiveTab(name);
+    setNewTabName("");
+    setIsAddingTab(false);
+  };
+
+  const exec = (cmd: string, val?: string) => {
+    document.execCommand(cmd, false, val);
+    handleNotesInput();
+  };
+
   return (
-    <div className="space-y-4 py-2 border-t border-border/40 mt-4">
-      <div className="flex items-center justify-between gap-3">
+    <div className="pt-4 mt-4 border-t border-border/40 space-y-4">
+      <div className="flex items-center justify-between">
         <h4 className="text-sm font-semibold flex items-center gap-2">
-          <Folder className="w-4 h-4 text-primary" /> Textos e Links do Projeto
+          <FileText className="w-4 h-4 text-primary" /> Textos e Links
         </h4>
-        <button
-          onClick={addSection}
-          className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-primary-soft text-primary hover:bg-primary hover:text-white transition-all text-[11px] font-bold uppercase tracking-wider"
-        >
-          <Plus className="w-3.5 h-3.5" /> Adicionar Seção
+        <button onClick={() => setManageTabsOpen(true)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground transition-colors">
+          <Settings className="w-3.5 h-3.5" />
         </button>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-        <input
-          placeholder="Filtrar nesta biblioteca..."
-          value={localSearch}
-          onChange={e => setLocalSearch(e.target.value)}
-          className="w-full pl-9 pr-4 py-2 rounded-xl bg-card border border-border/40 text-xs focus:outline-none focus:border-primary transition-all"
-        />
-      </div>
-
-      <div className="space-y-3">
-        {filtered.map(s => {
-          const isEditing = editingId === s.id;
-          return (
-            <div key={s.id} className={cn(
-              "rounded-2xl border transition-all overflow-hidden",
-              isEditing ? "border-primary bg-card shadow-md ring-1 ring-primary/10" : "border-border/40 bg-muted/10 hover:border-primary/20"
-            )}>
-              {/* Header */}
-              <div className="flex items-center justify-between p-3 bg-muted/20">
-                {isEditing ? (
-                  <input
-                    value={s.title}
-                    onChange={e => updateSection(s.id, { title: e.target.value })}
-                    className="flex-1 bg-transparent font-medium text-sm focus:outline-none border-b border-primary/30 mr-4"
-                    autoFocus
-                  />
-                ) : (
-                  <div className="flex-1 min-w-0" onClick={() => setEditingId(s.id)}>
-                    <h5 className="text-sm font-medium truncate cursor-pointer hover:text-primary transition-colors">{s.title || "Sem título"}</h5>
-                    <div className="flex gap-1 mt-1">
-                      {s.tags.map((t, idx) => (
-                        <span key={idx} className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-bold uppercase">#{t}</span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                <div className="flex items-center gap-1">
-                  <button onClick={() => setEditingId(isEditing ? null : s.id)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground transition-colors">
-                    {isEditing ? <Check className="w-4 h-4 text-primary" /> : <Edit3 className="w-3.5 h-3.5" />}
-                  </button>
-                  <button onClick={() => removeSection(s.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Content / Editor */}
-              {isEditing && (
-                <div className="p-3 space-y-3 animate-fade-down">
-                  <div className="space-y-1.5">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Conteúdo</span>
-                    <ContentEditor
-                      initialValue={s.content}
-                      onChange={c => updateSection(s.id, { content: c })}
-                      placeholder="Anote aqui..."
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Rótulos / Tags (separados por vírgula)</span>
-                    <input
-                      value={s.tags.join(", ")}
-                      onChange={e => updateSection(s.id, { tags: e.target.value.split(",").map(t => t.trim()).filter(Boolean) })}
-                      placeholder="ex: legendas, links, referências"
-                      className="w-full px-3 py-2 rounded-xl bg-background border border-border/40 text-xs focus:outline-none focus:border-primary"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
-        {filtered.length === 0 && (
-          <p className="text-center py-6 text-xs text-muted-foreground italic">Nenhuma seção encontrada.</p>
+      <div className="flex flex-wrap items-center gap-2">
+        {Object.keys(tabs).map(t => (
+          <button
+            key={t}
+            onClick={() => setActiveTab(t)}
+            className={cn(
+              "px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-xl border transition-all",
+              activeTab === t ? "bg-primary text-white border-primary shadow-sm" : "bg-card border-border/40 text-muted-foreground hover:border-primary/40"
+            )}
+          >
+            {t}
+          </button>
+        ))}
+        {isAddingTab ? (
+          <form onSubmit={handleAddTab}>
+            <input
+              autoFocus
+              value={newTabName}
+              onChange={e => setNewTabName(e.target.value)}
+              placeholder="Nome..."
+              className="w-24 px-2 py-1 text-[11px] rounded-lg border border-primary bg-background outline-none"
+              onBlur={() => !newTabName.trim() && setIsAddingTab(false)}
+            />
+          </form>
+        ) : (
+          <button onClick={() => setIsAddingTab(true)} className="w-7 h-7 flex items-center justify-center rounded-xl border border-dashed border-border/60 text-muted-foreground hover:text-primary hover:border-primary transition-all">
+            <Plus className="w-3.5 h-3.5" />
+          </button>
         )}
       </div>
 
+      <div className="rounded-2xl border border-border/60 overflow-hidden bg-background shadow-sm focus-within:border-primary/40 transition-all">
+        <div className="flex items-center gap-1 p-1.5 bg-muted/20 border-b border-border/40 overflow-x-auto scrollbar-none">
+          <button onClick={() => exec("bold")} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background text-xs font-bold">B</button>
+          <button onClick={() => exec("italic")} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background text-xs italic font-serif">I</button>
+          <button onClick={() => {
+            const url = prompt("URL:");
+            if (url) exec("createLink", url);
+          }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background"><Hash className="w-3.5 h-3.5" /></button>
+          <div className="w-px h-4 bg-border/60 mx-1" />
+          {NOTE_TEXT_COLORS.map(c => (
+            <button key={c.color} onClick={() => exec("foreColor", c.color)} className="w-5 h-5 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: c.color }} title={c.label} />
+          ))}
+          <div className="w-px h-4 bg-border/60 mx-1" />
+          <button onClick={() => exec("removeFormat")} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background"><Eraser className="w-3.5 h-3.5" /></button>
+          <div className="flex-1" />
+          <button onClick={() => {
+            if (editorRef.current) {
+              navigator.clipboard.writeText(editorRef.current.innerText);
+              toast.success("Copiado!");
+            }
+          }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background"><Copy className="w-3.5 h-3.5" /></button>
+        </div>
+        <div
+          ref={editorRef}
+          contentEditable
+          onInput={handleNotesInput}
+          onPaste={e => {
+            e.preventDefault();
+            const text = e.clipboardData.getData("text/plain");
+            document.execCommand("insertText", false, text);
+          }}
+          className="min-h-[200px] max-h-[500px] overflow-y-auto px-4 py-3 text-sm leading-relaxed focus:outline-none"
+        />
+        <div className="px-3 py-1 bg-muted/10 border-t border-border/20 flex justify-end">
+           <span className="text-[10px] text-muted-foreground flex items-center gap-1"><Check className="w-3 h-3" /> Salvamento automático ativo</span>
+        </div>
+      </div>
+
+      {manageTabsOpen && (
+        <ManageTabsModal
+          tabs={tabs}
+          onClose={() => setManageTabsOpen(false)}
+          onSave={(next) => {
+            setTabs(next);
+            onUpdate(JSON.stringify(next));
+            setManageTabsOpen(false);
+            if (!next[activeTab]) setActiveTab(Object.keys(next)[0] || "Geral");
+          }}
+        />
+      )}
+
       {/* Drive Section */}
-      <div className="pt-4 border-t border-border/40 space-y-3">
+      <div className="pt-2 space-y-3">
         <h4 className="text-sm font-semibold flex items-center gap-2">
           <Cloud className="w-4 h-4 text-primary" /> Arquivos no Drive
         </h4>
@@ -907,35 +922,45 @@ function ProjectContentLibrary({ client, onUpdate }: { client: Client; onUpdate:
   );
 }
 
-function ContentEditor({ initialValue, onChange, placeholder }: { initialValue: string; onChange: (v: string) => void; placeholder?: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isFirst = useRef(true);
-
-  useEffect(() => {
-    if (isFirst.current && ref.current) {
-      ref.current.innerHTML = initialValue;
-      isFirst.current = false;
-    }
-  }, [initialValue]);
-
+function ManageTabsModal({ tabs, onClose, onSave }: { tabs: Record<string, string>; onClose: () => void; onSave: (t: Record<string, string>) => void }) {
+  const [list, setList] = useState(Object.keys(tabs).map(k => ({ name: k, content: tabs[k] })));
+  
   return (
-    <div className="rounded-xl border border-border/60 overflow-hidden bg-background">
-      <div className="flex items-center gap-1 p-1 bg-muted/10 border-b border-border/40 overflow-x-auto scrollbar-none">
-        <button type="button" onClick={() => document.execCommand("bold")} className="w-7 h-7 flex items-center justify-center rounded hover:bg-muted text-xs font-bold">B</button>
-        <button type="button" onClick={() => document.execCommand("italic")} className="w-7 h-7 flex items-center justify-center rounded hover:bg-muted text-xs italic">I</button>
-        <button type="button" onClick={() => {
-           const url = prompt("Link:");
-           if (url) document.execCommand("createLink", false, url);
-        }} className="w-7 h-7 flex items-center justify-center rounded hover:bg-muted"><Hash className="w-3.5 h-3.5" /></button>
-        <button type="button" onClick={() => document.execCommand("removeFormat")} className="w-7 h-7 flex items-center justify-center rounded hover:bg-muted"><Eraser className="w-3.5 h-3.5" /></button>
+    <div className="fixed inset-0 z-[60] bg-foreground/20 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-card rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4 animate-fade-up">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-display text-xl">Gerenciar Guias</h3>
+          <button onClick={onClose} className="p-1 hover:bg-muted rounded-lg"><X className="w-4 h-4" /></button>
+        </div>
+        <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+          {list.map((t, idx) => (
+            <div key={idx} className="flex items-center gap-2 bg-background border border-border/40 p-2 rounded-xl">
+              <input
+                value={t.name}
+                onChange={e => {
+                  const nl = [...list];
+                  nl[idx].name = e.target.value;
+                  setList(nl);
+                }}
+                className="flex-1 bg-transparent text-sm font-medium focus:outline-none px-1"
+              />
+              <button onClick={() => {
+                if (list.length > 1 && confirm("Excluir esta guia?")) {
+                  setList(list.filter((_, i) => i !== idx));
+                }
+              }} className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-end gap-2 pt-2">
+          <button onClick={onClose} className="px-4 py-2 rounded-xl text-muted-foreground hover:bg-muted text-sm">Cancelar</button>
+          <button onClick={() => {
+            const res: Record<string, string> = {};
+            list.forEach(i => { if (i.name.trim()) res[i.name.trim()] = i.content; });
+            onSave(res);
+          }} className="px-5 py-2 rounded-xl bg-primary text-white text-sm font-medium">Salvar</button>
+        </div>
       </div>
-      <div
-        ref={ref}
-        contentEditable
-        onInput={() => onChange(ref.current?.innerHTML || "")}
-        data-placeholder={placeholder}
-        className="min-h-[120px] max-h-[300px] overflow-y-auto px-3 py-2 text-xs leading-relaxed focus:outline-none"
-      />
     </div>
   );
 }

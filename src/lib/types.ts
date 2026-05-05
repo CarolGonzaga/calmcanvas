@@ -5,6 +5,7 @@ export interface WorkspaceData {
   name: string;
   icon?: string;
   sub?: string;
+  defaultTaskTemplate?: string[]; // pre-filled tasks for new projects in this workspace
 }
 
 export type TaskStatus = "todo" | "doing" | "done";

@@ -215,6 +215,8 @@ function NewClientModal({ workspace, onClose, onSave }: {
   onClose: () => void;
   onSave: (data: { name: string; startDate: string; endDate?: string; taskTemplate: string[] }) => void;
 }) {
+  const { workspaces } = useFocoData();
+  const wsData = workspaces.find(w => w.id === workspace);
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState(todayISO());
   const [endDate, setEndDate] = useState("");
@@ -226,7 +228,16 @@ function NewClientModal({ workspace, onClose, onSave }: {
   ];
 
   const [quantities, setQuantities] = useState<Record<string, number>>({});
-  const [extras, setExtras] = useState<{ id: string, name: string, qty: number, recurring: boolean, urgency: "urgent" | "today" | "whenever" }[]>([]);
+  const [extras, setExtras] = useState<{ id: string, name: string, qty: number, recurring: boolean, urgency: "urgent" | "today" | "whenever" }[]>(() => {
+    const defaults = wsData?.defaultTaskTemplate || [];
+    return defaults.map(task => ({
+      id: Math.random().toString(),
+      name: task,
+      qty: 1,
+      recurring: true,
+      urgency: "whenever" as const,
+    }));
+  });
 
   const updateQty = (key: string, delta: number) => {
     setQuantities(prev => {

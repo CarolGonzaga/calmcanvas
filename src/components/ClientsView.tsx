@@ -781,6 +781,10 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
                 className="h-8 px-2.5 flex items-center justify-center rounded-lg hover:bg-background hover:shadow-sm transition-all text-foreground/70 hover:text-foreground text-[11px] font-semibold lowercase">
                 aa
               </button>
+              <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => execNote("removeFormat")} title="Remover formatação"
+                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-muted transition-colors text-muted-foreground ml-1">
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
             <span className="w-px h-5 bg-border shrink-0 hidden sm:block" />
@@ -821,11 +825,7 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
 
             <div className="hidden md:block flex-1" />
 
-            {/* Remove Format */}
-            <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => execNote("removeFormat")} title="Remover formatação"
-              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-muted transition-colors text-muted-foreground md:ml-auto">
-              <X className="w-4 h-4" />
-            </button>
+
 
             <span className="w-px h-5 bg-border shrink-0" />
 

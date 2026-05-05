@@ -522,20 +522,26 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
   const [newTabName, setNewTabName] = useState("");
 
   useEffect(() => {
-    if (!client.notes) {
-      setTabs({ "Geral": "" });
-      return;
-    }
-    try {
-      const parsed = JSON.parse(client.notes);
-      if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
-        setTabs(parsed);
-      } else {
-        setTabs({ "Geral": client.notes });
+    let parsed: Record<string, string> = { "Geral": "" };
+    if (client.notes) {
+      try {
+        const p = JSON.parse(client.notes);
+        if (typeof p === "object" && p !== null && !Array.isArray(p)) {
+          parsed = p;
+        } else {
+          parsed = { "Geral": client.notes };
+        }
+      } catch {
+        parsed = { "Geral": client.notes };
       }
-    } catch {
-      setTabs({ "Geral": client.notes });
     }
+    setTabs(parsed);
+    // Also sync the editor — activeTab doesn't change on load, so the
+    // activeTab effect won't re-fire, we must set innerHTML here too.
+    if (editorRef.current) {
+      editorRef.current.innerHTML = parsed[activeTab] || parsed[Object.keys(parsed)[0]] || "";
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client.notes]);
 
   useEffect(() => {
@@ -577,17 +583,23 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
     document.execCommand("insertText", false, upper ? sel.toString().toUpperCase() : sel.toString().toLowerCase());
   };
 
-  // Save content from editor to tabs WITHOUT causing re-render of editor
+  // Save content from editor WITHOUT causing re-render that resets innerHTML
   const handleNotesInput = () => {
     const html = editorRef.current?.innerHTML || "";
-    // Update tabs ref-style: use functional update so React batches this properly
-    // but DON'T cause a re-render that resets innerHTML
     onUpdate(JSON.stringify({ ...tabs, [activeTab]: html }));
-    // Update the tabs object in-place without triggering re-render of this effect
+    // Mutate in-place so subsequent onUpdate calls have latest content
+    // (avoids stale closure without triggering re-render)
     tabs[activeTab] = html;
   };
 
-  // Handle Enter key: insert <br> instead of <div> to avoid browser white-line bug
+  // Paste as plain text only — strips all external formatting
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const plain = e.clipboardData.getData("text/plain");
+    document.execCommand("insertText", false, plain);
+  };
+
+  // Enter → <br> to avoid browser inserting <div> with white bg
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -595,7 +607,7 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
     }
   };
 
-  // sync editorRef content when tab changes — IMPERATIVE, no dangerouslySetInnerHTML
+  // Sync editor when active tab changes (imperative, no dangerouslySetInnerHTML)
   useEffect(() => {
     if (editorRef.current) {
       editorRef.current.innerHTML = tabs[activeTab] || "";
@@ -743,10 +755,10 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
             contentEditable
             suppressContentEditableWarning
             onInput={handleNotesInput}
+            onPaste={handlePaste}
             onKeyDown={handleKeyDown}
             data-placeholder={`Anote links, referências e informações em '${activeTab}'...`}
-            className="w-full min-h-[260px] leading-relaxed px-4 py-3 text-sm focus:outline-none whitespace-pre-wrap break-words"
-            style={{ minHeight: 260 }}
+            className="w-full min-h-[260px] leading-relaxed px-4 py-3 text-sm focus:outline-none bg-background text-foreground"
           />
           {/* Formatting toolbar */}
           <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 bg-muted/50 border-t border-border">

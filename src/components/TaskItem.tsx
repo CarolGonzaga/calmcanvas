@@ -75,7 +75,10 @@ export function TaskItem({ task, clientName, onToggle, showClient, hideUrgency, 
         </button>
 
         {/* Content */}
-        <div className="flex-1 min-w-0" onClick={onNavigate} style={{ cursor: onNavigate ? 'pointer' : 'default' }}>
+        <div 
+          className="flex-1 min-w-0 cursor-pointer" 
+          onClick={() => setIsEditing(true)}
+        >
           <div 
             className={cn("text-sm md:text-base font-medium leading-snug break-words", done && "line-through text-muted-foreground")}
             dangerouslySetInnerHTML={{ __html: task.name }}

@@ -10,13 +10,20 @@ export function Dashboard({ workspace, onNavigateToProject }: { workspace: Works
   const { clients, tasks, toggleTask } = useFocoData();
   const today = todayISO();
 
+  const sortByDate = (a: any, b: any) => {
+    if (!a.dueDate && !b.dueDate) return 0;
+    if (!a.dueDate) return 1;
+    if (!b.dueDate) return -1;
+    return a.dueDate < b.dueDate ? -1 : 1;
+  };
+
   // 1. URGENTES DO DIA: urgency="urgent" E dueDate = hoje (ou sem data, mas dueDate <= hoje)
   const urgent = tasks.filter(t =>
     t.workspace === workspace &&
     t.status !== "done" &&
     t.urgency === "urgent" &&
     (!t.dueDate || t.dueDate <= today)
-  );
+  ).sort(sortByDate);
 
   const excludeUrgentIds = new Set(urgent.map(t => t.id));
 
@@ -26,7 +33,7 @@ export function Dashboard({ workspace, onNavigateToProject }: { workspace: Works
     t.status !== "done" &&
     !excludeUrgentIds.has(t.id) &&
     t.dueDate === today
-  );
+  ).sort(sortByDate);
 
   const excludeTodayIds = new Set([...excludeUrgentIds, ...todayTasks.map(t => t.id)]);
 
@@ -39,7 +46,7 @@ export function Dashboard({ workspace, onNavigateToProject }: { workspace: Works
       !t.dueDate
     ) return false;
     return t.dueDate > today;
-  }).sort((a, b) => (a.dueDate! < b.dueDate! ? -1 : 1));
+  }).sort(sortByDate);
 
   const wsClients = clients.filter(c => c.workspace === workspace);
 

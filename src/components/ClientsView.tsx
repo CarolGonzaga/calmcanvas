@@ -489,12 +489,32 @@ Reunião com cliente" />
   );
 }
 
+const NOTE_TEXT_COLORS = [
+  { color: "#ef4444", label: "Vermelho" },
+  { color: "#f97316", label: "Laranja" },
+  { color: "#eab308", label: "Amarelo" },
+  { color: "#22c55e", label: "Verde" },
+  { color: "#3b82f6", label: "Azul" },
+  { color: "#8b5cf6", label: "Roxo" },
+  { color: "#ec4899", label: "Rosa" },
+  { color: "#6b7280", label: "Cinza" },
+];
+const NOTE_HIGHLIGHT_COLORS = [
+  { color: "#fef08a", label: "Amarelo" },
+  { color: "#bbf7d0", label: "Verde" },
+  { color: "#bfdbfe", label: "Azul" },
+  { color: "#f5d0fe", label: "Roxo" },
+  { color: "#fed7aa", label: "Laranja" },
+  { color: "#fecaca", label: "Vermelho" },
+];
+
 function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (notes: string) => void }) {
   const { driveService, appFolderId } = useGoogleDrive();
   const [files, setFiles] = useState<Array<{ id: string; name: string; webViewLink?: string; iconLink?: string }>>([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
   const [tabs, setTabs] = useState<Record<string, string>>({ "Geral": "" });
   const [activeTab, setActiveTab] = useState<string>("Geral");
 
@@ -528,17 +548,44 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
   const [manageTabsOpen, setManageTabsOpen] = useState(false);
 
   const copyText = () => {
-    const text = tabs[activeTab] || "";
+    const text = editorRef.current?.innerText || tabs[activeTab] || "";
     navigator.clipboard.writeText(text);
     toast.success("Texto copiado!");
   };
 
   const clearText = () => {
     if (!confirm(`Limpar todo o texto da guia '${activeTab}'?`)) return;
+    if (editorRef.current) editorRef.current.innerHTML = "";
     const newTabs = { ...tabs, [activeTab]: "" };
     setTabs(newTabs);
     onUpdate(JSON.stringify(newTabs));
   };
+
+  const execNote = (cmd: string, val?: string) => {
+    editorRef.current?.focus();
+    document.execCommand(cmd, false, val);
+  };
+
+  const applyCaseNote = (upper: boolean) => {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) return;
+    document.execCommand("insertText", false, upper ? sel.toString().toUpperCase() : sel.toString().toLowerCase());
+  };
+
+  const handleNotesInput = () => {
+    const html = editorRef.current?.innerHTML || "";
+    const newTabs = { ...tabs, [activeTab]: html };
+    setTabs(newTabs);
+    onUpdate(JSON.stringify(newTabs));
+  };
+
+  // sync editorRef content when tab changes
+  useEffect(() => {
+    if (editorRef.current) {
+      editorRef.current.innerHTML = tabs[activeTab] || "";
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   useEffect(() => {
     if (driveService && appFolderId) {
@@ -578,11 +625,7 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
     }
   };
 
-  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newTabs = { ...tabs, [activeTab]: e.target.value };
-    setTabs(newTabs);
-    onUpdate(JSON.stringify(newTabs));
-  };
+
 
 
 
@@ -677,13 +720,78 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
           </div>
         </div>
 
-        {/* Textarea: increased height and leading-relaxed for spacing */}
-        <textarea
-          value={tabs[activeTab] || ""}
-          onChange={handleNotesChange}
-          placeholder={`Anote links, referências e informações em '${activeTab}'...`}
-          className="w-full min-h-[300px] leading-relaxed px-4 py-3 text-sm rounded-xl border border-border bg-background focus:outline-none focus:border-primary resize-y"
-        />
+        {/* Rich text editor with formatting toolbar */}
+        <div className="rounded-xl border border-border focus-within:border-primary transition-colors overflow-hidden">
+          <div
+            ref={editorRef}
+            contentEditable
+            onInput={handleNotesInput}
+            dangerouslySetInnerHTML={{ __html: tabs[activeTab] || "" }}
+            placeholder={`Anote links, referências e informações em '${activeTab}'...`}
+            className="w-full min-h-[260px] leading-relaxed px-4 py-3 text-sm bg-background focus:outline-none resize-none empty:before:content-[attr(placeholder)] empty:before:text-muted-foreground/50"
+          />
+          {/* Formatting toolbar */}
+          <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 bg-muted/50 border-t border-border">
+            {/* Bold / Italic / Underline */}
+            <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => execNote("bold")} title="Negrito"
+              className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-muted transition-colors text-foreground/70 hover:text-foreground">
+              <span className="font-bold text-xs">B</span>
+            </button>
+            <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => execNote("italic")} title="Itálico"
+              className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-muted transition-colors text-foreground/70 hover:text-foreground">
+              <span className="italic text-xs">I</span>
+            </button>
+            <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => execNote("underline")} title="Sublinhado"
+              className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-muted transition-colors text-foreground/70 hover:text-foreground">
+              <span className="underline text-xs">U</span>
+            </button>
+
+            <span className="w-px h-4 bg-border mx-0.5 shrink-0" />
+
+            {/* UPPER / lower */}
+            <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => applyCaseNote(true)} title="TUDO MAIÚSCULO"
+              className="h-7 px-2 flex items-center justify-center rounded-md hover:bg-muted transition-colors text-foreground/70 hover:text-foreground text-[10px] font-semibold">
+              AA
+            </button>
+            <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => applyCaseNote(false)} title="tudo minúsculo"
+              className="h-7 px-2 flex items-center justify-center rounded-md hover:bg-muted transition-colors text-foreground/70 hover:text-foreground text-[10px] font-semibold lowercase">
+              aa
+            </button>
+
+            <span className="w-px h-4 bg-border mx-0.5 shrink-0" />
+
+            <span className="text-[9px] text-muted-foreground font-medium px-1 shrink-0">Cor</span>
+            {NOTE_TEXT_COLORS.map(({ color, label }) => (
+              <button key={color} type="button"
+                onMouseDown={e => e.preventDefault()}
+                onClick={() => execNote("foreColor", color)}
+                title={`Texto: ${label}`}
+                className="w-5 h-5 rounded-full border-2 border-background hover:scale-110 transition-transform shrink-0 shadow-sm ring-1 ring-black/10"
+                style={{ backgroundColor: color }}
+              />
+            ))}
+
+            <span className="w-px h-4 bg-border mx-0.5 shrink-0" />
+
+            <span className="text-[9px] text-muted-foreground font-medium px-1 shrink-0">Fundo</span>
+            {NOTE_HIGHLIGHT_COLORS.map(({ color, label }) => (
+              <button key={color} type="button"
+                onMouseDown={e => e.preventDefault()}
+                onClick={() => execNote("hiliteColor", color)}
+                title={`Grifar: ${label}`}
+                className="w-5 h-5 rounded-full border-2 border-background hover:scale-110 transition-transform shrink-0 shadow-sm ring-1 ring-black/10"
+                style={{ backgroundColor: color }}
+              />
+            ))}
+
+            <span className="w-px h-4 bg-border mx-0.5 shrink-0" />
+
+            <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => execNote("removeFormat")} title="Remover formatação"
+              className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        </div>
       </div>
 
       {manageTabsOpen && (

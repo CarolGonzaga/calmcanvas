@@ -709,6 +709,17 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
         
         {/* Guias/Tabs */}
         <div className="flex flex-wrap items-center gap-2 mb-3">
+          <button
+            type="button"
+            onClick={() => setManageTabsOpen(true)}
+            className="w-8 h-8 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-muted transition-colors shrink-0"
+            title="Gerenciar guias"
+          >
+            <Settings className="w-4 h-4" />
+          </button>
+
+          <div className="w-px h-5 bg-border/60 mx-1 shrink-0" />
+
           {Object.keys(tabs).map(tab => (
             <button
               key={tab}
@@ -749,16 +760,7 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
             </button>
           )}
 
-          <div className="ml-auto flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setManageTabsOpen(true)}
-              className="w-7 h-7 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-muted transition-colors"
-              title="Gerenciar guias"
-            >
-              <Settings className="w-3.5 h-3.5" />
-            </button>
-          </div>
+
         </div>
 
         {/* Rich text editor with formatting toolbar */}

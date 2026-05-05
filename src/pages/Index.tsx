@@ -83,15 +83,7 @@ const Index = () => {
           {/* Logo */}
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-primary-soft flex items-center justify-center overflow-hidden shrink-0 shadow-sm border border-primary/10">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" className="w-7 h-7 md:w-8 md:h-8 translate-y-[-0.5px]">
-                <circle cx="32" cy="13" r="6" fill="#7C3AED" />
-                <path d="M24 23 Q32 19 40 23 L38 35 Q32 39 26 35 Z" fill="#8B5CF6" />
-                <path d="M26 35 Q18 39 14 43 Q18 45 26 41 Z" fill="#8B5CF6" />
-                <path d="M38 35 Q46 39 50 43 Q46 45 38 41 Z" fill="#8B5CF6" />
-                <circle cx="17" cy="39" r="4" fill="#A78BFA" />
-                <circle cx="47" cy="39" r="4" fill="#A78BFA" />
-                <circle cx="32" cy="13" r="9" stroke="#C4B5FD" strokeWidth="1.5" fill="none" />
-              </svg>
+              <span className="text-xl md:text-2xl leading-none select-none">🧘‍♀️</span>
             </div>
             <div className="min-w-0">
               <h1 className="font-display text-base md:text-lg leading-none">Foco</h1>

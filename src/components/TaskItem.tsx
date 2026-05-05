@@ -1,5 +1,5 @@
 import { Task } from "@/lib/types";
-import { Check, Pencil, X } from "lucide-react";
+import { Check, Pencil, X, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { fmtDate, todayISO } from "@/lib/cycles";
 import { useState, useRef } from "react";
@@ -92,6 +92,14 @@ export function TaskItem({ task, clientName, onToggle, showClient, hideUrgency, 
                   {overdue ? "⚠️ atrasada desde " : "para "}{fmtDate(task.dueDate)}
                 </span>
               )}
+              {task.isRecurring && (
+                <>
+                  <span>·</span>
+                  <span className="text-primary font-medium flex items-center gap-0.5">
+                    <RefreshCw className="w-3 h-3" /> diária
+                  </span>
+                </>
+              )}
             </div>
           ) : null}
 
@@ -147,6 +155,7 @@ function EditTaskModal({ task, onClose, onSave }: {
 }) {
   const [dueDate, setDueDate] = useState(task.dueDate || "");
   const [urgency, setUrgency] = useState<Task["urgency"]>(task.urgency || "whenever");
+  const [isRecurring, setIsRecurring] = useState(task.isRecurring || false);
   const editorRef = useRef<HTMLDivElement>(null);
 
   const urgencyOptions: { value: "urgent" | "today" | "whenever"; label: string }[] = [
@@ -208,6 +217,21 @@ function EditTaskModal({ task, onClose, onSave }: {
               ))}
             </div>
           </div>
+
+          {!task.clientId && (
+            <label className="flex items-center gap-3 p-3 rounded-xl border border-border bg-muted/20 cursor-pointer hover:bg-muted/30 transition-colors">
+              <input
+                type="checkbox"
+                checked={isRecurring}
+                onChange={e => setIsRecurring(e.target.checked)}
+                className="rounded border-border text-primary focus:ring-primary w-4 h-4"
+              />
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">Tarefa Diária</span>
+                <span className="text-[10px] text-muted-foreground">Reaparece automaticamente todos os dias</span>
+              </div>
+            </label>
+          )}
         </div>
 
         <div className="flex justify-end gap-2 pt-2">
@@ -217,7 +241,7 @@ function EditTaskModal({ task, onClose, onSave }: {
           <button
             onClick={() => {
               const newName = editorRef.current?.innerHTML || task.name;
-              onSave({ name: newName, dueDate: dueDate || undefined, urgency });
+              onSave({ name: newName, dueDate: dueDate || undefined, urgency, isRecurring });
             }}
             className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
           >

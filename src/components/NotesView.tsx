@@ -21,8 +21,8 @@ export function NotesView({ workspace, title, subtitle }: { workspace: Workspace
     }]);
 
   return (
-    <div className="space-y-10 animate-fade-up max-w-4xl">
-      <div className="space-y-6 max-w-3xl">
+    <div className="space-y-10 animate-fade-up">
+      <div className="space-y-6">
         <div>
           <h1 className="font-display text-3xl">{title}</h1>
           <p className="text-muted-foreground text-sm mt-1">{subtitle}</p>

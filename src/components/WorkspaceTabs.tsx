@@ -21,7 +21,7 @@ export function WorkspaceTabs({ active, onChange }: Props) {
 
   return (
     <>
-      <div className="flex flex-wrap gap-2 p-1.5 bg-muted/60 rounded-2xl relative">
+      <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
         {workspaces.map(it => {
           const Icon = it.icon ? (iconsMap[it.icon] || Sparkles) : Sparkles;
           const isActive = active === it.id;
@@ -30,31 +30,34 @@ export function WorkspaceTabs({ active, onChange }: Props) {
               key={it.id}
               onClick={() => onChange(it.id)}
               className={cn(
-                "flex-1 min-w-[140px] flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-left",
+                "flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all duration-300 text-left shrink-0",
+                // On mobile: compact. On md+: expanded with subtitle
+                "min-w-[120px] md:min-w-[160px]",
                 isActive
-                  ? "bg-card shadow-[var(--shadow-soft)] text-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-card/50"
+                  ? "bg-card shadow-[var(--shadow-soft)] text-foreground border border-border/40"
+                  : "bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-card/70"
               )}
             >
               <div className={cn(
-                "w-9 h-9 rounded-lg flex items-center justify-center transition-colors",
-                isActive ? "bg-primary-soft text-primary" : "bg-background text-muted-foreground"
+                "w-8 h-8 rounded-lg flex items-center justify-center transition-colors shrink-0",
+                isActive ? "bg-primary-soft text-primary" : "bg-background/50 text-muted-foreground"
               )}>
-                <Icon className="w-4 h-4" />
+                <Icon className="w-3.5 h-3.5" />
               </div>
-              <div className="leading-tight">
-                <div className="text-sm font-medium">{it.name}</div>
-                <div className="text-[11px] opacity-70">{it.sub || "projetos"}</div>
+              <div className="leading-tight min-w-0">
+                <div className="text-xs md:text-sm font-medium truncate">{it.name}</div>
+                <div className="text-[10px] opacity-60 truncate hidden md:block">{it.sub || "projetos"}</div>
               </div>
             </button>
           );
         })}
+        {/* Manage button */}
         <button
           onClick={() => setShowManage(true)}
-          className="flex-shrink-0 w-12 flex flex-col items-center justify-center rounded-xl transition-all duration-300 text-muted-foreground hover:text-foreground hover:bg-card/50 border border-dashed border-border/50 hover:border-border"
+          className="shrink-0 h-full min-h-[52px] w-10 flex flex-col items-center justify-center rounded-xl transition-all duration-300 text-muted-foreground hover:text-foreground hover:bg-card/50 border border-dashed border-border/50 hover:border-border"
           title="Gerenciar Seções"
         >
-          <Settings className="w-5 h-5" />
+          <Settings className="w-4 h-4" />
         </button>
       </div>
 

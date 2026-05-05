@@ -53,7 +53,55 @@ export function CalendarView({ workspace }: { workspace: Workspace }) {
         </div>
       </div>
 
-      <div className="soft-card p-4">
+      {/* Mobile: list view only */}
+      <div className="md:hidden space-y-2">
+        {wsTasks
+          .filter(t => {
+            const d = parseISO(t.dueDate!);
+            return d.getFullYear() === year && d.getMonth() === month;
+          })
+          .sort((a, b) => (a.dueDate! < b.dueDate! ? -1 : 1))
+          .length === 0 ? (
+            <div className="soft-card p-10 text-center text-muted-foreground text-sm">
+              Nenhum evento este mês.
+            </div>
+          ) : (
+          wsTasks
+            .filter(t => { const d = parseISO(t.dueDate!); return d.getFullYear() === year && d.getMonth() === month; })
+            .sort((a, b) => (a.dueDate! < b.dueDate! ? -1 : 1))
+            .map(t => {
+              const c = clients.find(c => c.id === t.clientId);
+              const iso = t.dueDate!;
+              const isToday = iso === today;
+              return (
+                <div key={t.id} className={cn(
+                  "soft-card p-3 flex items-center gap-3 text-sm",
+                  isToday && "border-primary/40 bg-primary-soft/30"
+                )}>
+                  <div className={cn(
+                    "w-10 h-10 rounded-xl flex flex-col items-center justify-center shrink-0 text-center",
+                    isToday ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                  )}>
+                    <span className="text-[10px] leading-none capitalize">
+                      {new Date(iso + "T12:00").toLocaleDateString("pt-BR", { weekday: "short" })}
+                    </span>
+                    <span className="text-lg font-semibold leading-none mt-0.5">
+                      {new Date(iso + "T12:00").getDate()}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium break-words">{t.isReport ? "📋 " : "✓ "}{t.name}</p>
+                    {c && <p className="text-xs text-muted-foreground mt-0.5">{c.name}</p>}
+                  </div>
+                  {t.urgency === "urgent" && <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />}
+                </div>
+              );
+            })
+        )}
+      </div>
+
+      {/* Desktop: grid calendar */}
+      <div className="hidden md:block soft-card p-4">
         <div className="grid grid-cols-7 gap-1 text-xs text-muted-foreground mb-2">
           {["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].map(d => (
             <div key={d} className="text-center py-2 font-medium">{d}</div>
@@ -127,8 +175,8 @@ export function CalendarView({ workspace }: { workspace: Workspace }) {
         </div>
       </div>
 
-      {/* Upcoming list for the month */}
-      <div>
+      {/* Upcoming list for the month — desktop only */}
+      <div className="hidden md:block">
         <h2 className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-medium">Eventos deste mês</h2>
         <div className="space-y-2">
           {wsTasks

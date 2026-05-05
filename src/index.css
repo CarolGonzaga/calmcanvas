@@ -64,6 +64,58 @@
     --sidebar-border: 38 20% 88%;
     --sidebar-ring: 145 25% 55%;
   }
+
+  .dark {
+    /* Dark mode — deep slate with lavender accents */
+    --background: 230 15% 10%;
+    --foreground: 220 15% 90%;
+
+    --card: 230 15% 14%;
+    --card-foreground: 220 15% 90%;
+
+    --popover: 230 15% 14%;
+    --popover-foreground: 220 15% 90%;
+
+    --primary: 260 60% 65%;
+    --primary-foreground: 0 0% 100%;
+    --primary-soft: 260 40% 20%;
+
+    --secondary: 260 20% 22%;
+    --secondary-foreground: 260 30% 80%;
+
+    --muted: 230 15% 18%;
+    --muted-foreground: 220 10% 55%;
+
+    --accent: 230 20% 20%;
+    --accent-foreground: 220 15% 85%;
+
+    --destructive: 8 55% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --warning: 35 70% 60%;
+    --warning-foreground: 30 40% 15%;
+
+    --success: 145 40% 50%;
+    --success-foreground: 0 0% 100%;
+
+    --border: 230 15% 22%;
+    --input: 230 15% 20%;
+    --ring: 260 60% 65%;
+
+    --gradient-soft: linear-gradient(135deg, hsl(230 15% 12%), hsl(260 20% 15%));
+    --gradient-warm: linear-gradient(135deg, hsl(230 15% 14%), hsl(260 20% 16%));
+    --shadow-soft: 0 2px 12px -4px hsl(0 0% 0% / 0.3);
+    --shadow-card: 0 4px 20px -8px hsl(0 0% 0% / 0.4);
+
+    --sidebar-background: 230 15% 12%;
+    --sidebar-foreground: 220 15% 80%;
+    --sidebar-primary: 260 60% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 230 15% 18%;
+    --sidebar-accent-foreground: 220 15% 80%;
+    --sidebar-border: 230 15% 22%;
+    --sidebar-ring: 260 60% 65%;
+  }
 }
 
 @layer base {

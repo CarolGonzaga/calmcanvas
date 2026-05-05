@@ -55,7 +55,7 @@ const Index = () => {
 
   const navItems = [
     { id: "home" as View, label: "Hoje", icon: Home },
-    { id: "clients" as View, label: "Projetos", icon: Users },
+    { id: "clients" as View, label: "Tarefas", icon: Users },
     { id: "calendar" as View, label: "Calendário", icon: Calendar },
     { id: "reports" as View, label: "Relatórios", icon: FileText },
     { id: "notes" as View, label: "Notas", icon: NotebookPen },

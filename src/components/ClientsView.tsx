@@ -30,15 +30,8 @@ export function ClientsView({ workspace, initialOpenId }: { workspace: Workspace
     <div className="space-y-6 animate-fade-up">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl">Projetos</h1>
-
+          <h1 className="font-display text-3xl">Tarefas</h1>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-[var(--shadow-soft)]"
-        >
-          <Plus className="w-4 h-4" /> Novo projeto
-        </button>
       </div>
 
       <div className="space-y-4">
@@ -92,6 +85,16 @@ export function ClientsView({ workspace, initialOpenId }: { workspace: Workspace
             <p className="text-muted-foreground">Nenhum projeto ainda. Que tal começar pelo primeiro?</p>
           </div>
         )}
+      </div>
+
+      <div className="flex items-center justify-between gap-4 pt-4">
+        <h2 className="font-display text-2xl text-foreground">Meus Projetos</h2>
+        <button
+          onClick={() => setShowForm(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-sm text-sm font-medium"
+        >
+          <Plus className="w-3.5 h-3.5" /> Novo projeto
+        </button>
       </div>
 
       <div className="flex flex-col md:flex-row md:items-center gap-3 bg-muted/20 p-3 rounded-2xl border border-border/40">

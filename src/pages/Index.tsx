@@ -59,7 +59,6 @@ const Index = () => {
     { id: "calendar" as View, label: "Calendário", icon: Calendar },
     { id: "reports" as View, label: "Relatórios", icon: FileText },
     { id: "notes" as View, label: "Notas", icon: NotebookPen },
-    { id: "receipts" as View, label: "Comprovantes", icon: LinkIcon },
   ];
 
   useEffect(() => {

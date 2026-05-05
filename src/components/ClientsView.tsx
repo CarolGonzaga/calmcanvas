@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useGoogleDrive } from "@/hooks/useGoogleDrive";
 import { toast } from "sonner";
 import { Client } from "@/lib/types";
+import { ProjectReceipts } from "./ReceiptsView";
 
 export function ClientsView({ workspace, initialOpenId }: { workspace: Workspace; initialOpenId?: string }) {
   const { clients, tasks, addClient, removeClient, toggleTask, addTask, removeTask, updateClient } = useFocoData();
@@ -224,6 +225,11 @@ export function ClientsView({ workspace, initialOpenId }: { workspace: Workspace
                   <ProjectDriveFiles
                     client={c}
                     onUpdate={(notes) => updateClient(c.id, { notes })}
+                  />
+
+                  <ProjectReceipts
+                    workspace={workspace}
+                    clientId={c.id}
                   />
 
                   <div className="pt-3 mt-3 border-t border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs text-muted-foreground">

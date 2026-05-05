@@ -90,13 +90,19 @@ function GlobalProjectNotes({ workspace }: { workspace: Workspace }) {
     }
   });
 
-  const filtered = allNotes.filter(n => {
-    const q = search.toLowerCase();
-    return n.projectName.toLowerCase().includes(q) ||
-           n.tabName.toLowerCase().includes(q) ||
-           n.content.toLowerCase().includes(q) ||
-           n.tags.some(t => t.toLowerCase().includes(q));
-  });
+  const filtered = allNotes
+    .filter(n => {
+      // Remove HTML tags to check if there is actual text
+      const plain = n.content.replace(/<[^>]*>/g, '').trim();
+      return plain.length > 0;
+    })
+    .filter(n => {
+      const q = search.toLowerCase();
+      return n.projectName.toLowerCase().includes(q) ||
+             n.tabName.toLowerCase().includes(q) ||
+             n.content.toLowerCase().includes(q) ||
+             n.tags.some(t => t.toLowerCase().includes(q));
+    });
 
   return (
     <div className="space-y-6">

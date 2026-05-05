@@ -860,7 +860,7 @@ function ProjectNotesEditor({ client, onUpdate }: { client: Client; onUpdate: (n
         <div
           ref={editorRef}
           contentEditable
-          onInput={handleNotesInput}
+          onBlur={handleNotesInput}
           onPaste={e => {
             e.preventDefault();
             const text = e.clipboardData.getData("text/plain");
@@ -869,7 +869,7 @@ function ProjectNotesEditor({ client, onUpdate }: { client: Client; onUpdate: (n
           className="min-h-[200px] max-h-[500px] overflow-y-auto px-4 py-3 text-sm leading-relaxed focus:outline-none"
         />
         <div className="px-3 py-1 bg-muted/10 border-t border-border/20 flex justify-end">
-           <span className="text-[10px] text-muted-foreground flex items-center gap-1"><Check className="w-3 h-3" /> Salvamento automático ativo</span>
+           <span className="text-[10px] text-muted-foreground flex items-center gap-1"><Check className="w-3 h-3" /> Salva ao clicar fora da caixa</span>
         </div>
       </div>
 
@@ -886,38 +886,41 @@ function ProjectNotesEditor({ client, onUpdate }: { client: Client; onUpdate: (n
         />
       )}
 
-      {/* Drive Section */}
-      <div className="pt-2 space-y-3">
-        <h4 className="text-sm font-semibold flex items-center gap-2">
-          <Cloud className="w-4 h-4 text-primary" /> Arquivos no Drive
-        </h4>
-        {driveService ? (
-          <div className="space-y-3">
-            {loading ? (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Sincronizando...
-              </div>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {files.map(f => (
-                  <a key={f.id} href={f.webViewLink} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-border/40 bg-card hover:border-primary/40 transition-all text-[11px] font-medium shadow-sm">
-                    {f.iconLink ? <img src={f.iconLink} alt="" className="w-3.5 h-3.5" /> : <File className="w-3.5 h-3.5" />}
-                    <span className="truncate max-w-[120px]">{f.name}</span>
-                  </a>
-                ))}
-                {files.length === 0 && <span className="text-[10px] text-muted-foreground">Vazio.</span>}
-              </div>
-            )}
-            <input type="file" className="hidden" ref={fileInputRef} onChange={handleUpload} />
-            <button onClick={() => fileInputRef.current?.click()} disabled={uploading} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-muted/40 hover:bg-muted text-[11px] font-bold text-muted-foreground hover:text-foreground transition-all border border-dashed border-border/60">
-              {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UploadCloud className="w-3.5 h-3.5" />}
-              Fazer Upload
-            </button>
-          </div>
-        ) : (
-          <p className="text-[10px] text-muted-foreground flex items-center gap-1.5"><CloudOff className="w-3 h-3" /> Conecte ao Drive para enviar arquivos.</p>
-        )}
-      </div>
+      {/* Drive Section - Only if notes not empty */}
+      {(tabs[activeTab] || "").replace(/<[^>]*>/g, '').trim().length > 0 && (
+        <div className="pt-2 space-y-3">
+          <h4 className="text-sm font-semibold flex items-center gap-2">
+            <Cloud className="w-4 h-4 text-primary" /> Arquivos no Drive
+          </h4>
+          {driveService ? (
+            <div className="space-y-3">
+              {loading ? (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" /> Sincronizando...
+                </div>
+              ) : (
+                files.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {files.map(f => (
+                      <a key={f.id} href={f.webViewLink} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-border/40 bg-card hover:border-primary/40 transition-all text-[11px] font-medium shadow-sm">
+                        {f.iconLink ? <img src={f.iconLink} alt="" className="w-3.5 h-3.5" /> : <File className="w-3.5 h-3.5" />}
+                        <span className="truncate max-w-[120px]">{f.name}</span>
+                      </a>
+                    ))}
+                  </div>
+                )
+              )}
+              <input type="file" className="hidden" ref={fileInputRef} onChange={handleUpload} />
+              <button onClick={() => fileInputRef.current?.click()} disabled={uploading} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-muted/40 hover:bg-muted text-[11px] font-bold text-muted-foreground hover:text-foreground transition-all border border-dashed border-border/60">
+                {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UploadCloud className="w-3.5 h-3.5" />}
+                Fazer Upload
+              </button>
+            </div>
+          ) : (
+            <p className="text-[10px] text-muted-foreground flex items-center gap-1.5"><CloudOff className="w-3 h-3" /> Conecte ao Drive para enviar arquivos.</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

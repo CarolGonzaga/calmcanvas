@@ -835,28 +835,7 @@ function ProjectNotesEditor({ client, onUpdate }: { client: Client; onUpdate: (n
         )}
       </div>
 
-      <div className="rounded-2xl border border-border/60 overflow-hidden bg-background shadow-sm focus-within:border-primary/40 transition-all">
-        <div className="flex items-center gap-1 p-1.5 bg-muted/20 border-b border-border/40 overflow-x-auto scrollbar-none">
-          <button onClick={() => exec("bold")} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background text-xs font-bold">B</button>
-          <button onClick={() => exec("italic")} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background text-xs italic font-serif">I</button>
-          <button onClick={() => {
-            const url = prompt("URL:");
-            if (url) exec("createLink", url);
-          }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background"><Hash className="w-3.5 h-3.5" /></button>
-          <div className="w-px h-4 bg-border/60 mx-1" />
-          {NOTE_TEXT_COLORS.map(c => (
-            <button key={c.color} onClick={() => exec("foreColor", c.color)} className="w-5 h-5 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: c.color }} title={c.label} />
-          ))}
-          <div className="w-px h-4 bg-border/60 mx-1" />
-          <button onClick={() => exec("removeFormat")} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background"><Eraser className="w-3.5 h-3.5" /></button>
-          <div className="flex-1" />
-          <button onClick={() => {
-            if (editorRef.current) {
-              navigator.clipboard.writeText(editorRef.current.innerText);
-              toast.success("Copiado!");
-            }
-          }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background"><Copy className="w-3.5 h-3.5" /></button>
-        </div>
+      <div className="rounded-2xl border border-border/60 overflow-hidden bg-background shadow-sm focus-within:border-primary/40 transition-all flex flex-col">
         <div
           ref={editorRef}
           contentEditable
@@ -866,10 +845,50 @@ function ProjectNotesEditor({ client, onUpdate }: { client: Client; onUpdate: (n
             const text = e.clipboardData.getData("text/plain");
             document.execCommand("insertText", false, text);
           }}
-          className="min-h-[200px] max-h-[500px] overflow-y-auto px-4 py-3 text-sm leading-relaxed focus:outline-none"
+          className="min-h-[200px] max-h-[500px] overflow-y-auto px-4 py-3 text-sm leading-relaxed focus:outline-none order-1"
         />
-        <div className="px-3 py-1 bg-muted/10 border-t border-border/20 flex justify-end">
-           <span className="text-[10px] text-muted-foreground flex items-center gap-1"><Check className="w-3 h-3" /> Salva ao clicar fora da caixa</span>
+        
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 p-2 bg-muted/20 border-t border-border/40 order-2">
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none pb-1 sm:pb-0">
+            <button onClick={() => exec("bold")} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background text-xs font-bold shrink-0">B</button>
+            <button onClick={() => exec("italic")} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background text-xs italic font-serif shrink-0">I</button>
+            <button onClick={() => {
+              const url = prompt("URL:");
+              if (url) exec("createLink", url);
+            }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background shrink-0"><Hash className="w-3.5 h-3.5" /></button>
+            
+            <div className="w-px h-4 bg-border/60 mx-1 shrink-0" />
+            
+            <div className="flex items-center gap-1 shrink-0">
+              {NOTE_TEXT_COLORS.map(c => (
+                <button key={c.color} onClick={() => exec("foreColor", c.color)} className="w-5 h-5 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: c.color }} title={`Cor: ${c.label}`} />
+              ))}
+            </div>
+
+            <div className="w-px h-4 bg-border/60 mx-1 shrink-0" />
+
+            <div className="flex items-center gap-1 shrink-0">
+              {NOTE_HIGHLIGHT_COLORS.map(c => (
+                <button key={c.color} onClick={() => exec("hiliteColor", c.color)} className="w-5 h-5 rounded border border-white/20 shadow-sm" style={{ backgroundColor: c.color }} title={`Destaque: ${c.label}`} />
+              ))}
+            </div>
+
+            <div className="w-px h-4 bg-border/60 mx-1 shrink-0" />
+            
+            <button onClick={() => exec("removeFormat")} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background shrink-0" title="Limpar formatação"><Eraser className="w-3.5 h-3.5" /></button>
+            <button onClick={() => {
+              if (editorRef.current) {
+                navigator.clipboard.writeText(editorRef.current.innerText);
+                toast.success("Copiado!");
+              }
+            }} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background shrink-0" title="Copiar tudo"><Copy className="w-3.5 h-3.5" /></button>
+          </div>
+
+          <div className="flex-1" />
+          
+          <div className="flex items-center justify-end px-1">
+             <span className="text-[9px] text-muted-foreground flex items-center gap-1 whitespace-nowrap"><Check className="w-2.5 h-2.5" /> Salva ao clicar fora</span>
+          </div>
         </div>
       </div>
 

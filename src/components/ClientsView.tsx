@@ -763,11 +763,22 @@ function ProjectNotesEditor({ client, onUpdate }: { client: Client; onUpdate: (n
     }
   };
 
-  const handleNotesInput = () => {
+  const updateLocal = () => {
     const html = editorRef.current?.innerHTML || "";
     const next = { ...tabs, [activeTab]: html };
     setTabs(next);
+  };
+
+  const persist = () => {
+    const html = editorRef.current?.innerHTML || "";
+    const next = { ...tabs, [activeTab]: html };
     onUpdate(JSON.stringify(next));
+  };
+
+  const exec = (cmd: string, val?: string) => {
+    editorRef.current?.focus();
+    document.execCommand(cmd, false, val);
+    updateLocal();
   };
 
   useEffect(() => {
@@ -786,11 +797,6 @@ function ProjectNotesEditor({ client, onUpdate }: { client: Client; onUpdate: (n
     setActiveTab(name);
     setNewTabName("");
     setIsAddingTab(false);
-  };
-
-  const exec = (cmd: string, val?: string) => {
-    document.execCommand(cmd, false, val);
-    handleNotesInput();
   };
 
   return (
@@ -839,7 +845,8 @@ function ProjectNotesEditor({ client, onUpdate }: { client: Client; onUpdate: (n
         <div
           ref={editorRef}
           contentEditable
-          onBlur={handleNotesInput}
+          onBlur={persist}
+          onInput={updateLocal}
           onPaste={e => {
             e.preventDefault();
             const text = e.clipboardData.getData("text/plain");
@@ -852,34 +859,42 @@ function ProjectNotesEditor({ client, onUpdate }: { client: Client; onUpdate: (n
           <div className="flex flex-wrap items-center gap-1.5">
             {/* Formatting Group */}
             <div className="flex items-center gap-0.5 bg-background/50 p-1 rounded-lg border border-border/40">
-              <button onClick={() => exec("bold")} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-background text-xs font-bold" title="Negrito">B</button>
-              <button onClick={() => exec("italic")} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-background text-xs italic font-serif" title="Itálico">I</button>
-              <button onClick={() => exec("underline")} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-background text-xs underline" title="Sublinhado">U</button>
+              <button onMouseDown={e => e.preventDefault()} onClick={() => exec("bold")} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-background text-xs font-bold" title="Negrito">B</button>
+              <button onMouseDown={e => e.preventDefault()} onClick={() => exec("italic")} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-background text-xs italic font-serif" title="Itálico">I</button>
+              <button onMouseDown={e => e.preventDefault()} onClick={() => exec("underline")} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-background text-xs underline" title="Sublinhado">U</button>
             </div>
 
             {/* Case Group */}
             <div className="flex items-center gap-0.5 bg-background/50 p-1 rounded-lg border border-border/40">
               <button 
+                onMouseDown={e => e.preventDefault()}
                 onClick={() => {
                   const sel = window.getSelection()?.toString();
-                  if (sel) document.execCommand("insertText", false, sel.toUpperCase());
+                  if (sel) {
+                    document.execCommand("insertText", false, sel.toUpperCase());
+                    updateLocal();
+                  }
                 }} 
                 className="px-2 h-8 flex items-center justify-center rounded-md hover:bg-background text-[10px] font-bold" title="MAIÚSCULAS"
               >
-                MAI
+                AA
               </button>
               <button 
+                onMouseDown={e => e.preventDefault()}
                 onClick={() => {
                   const sel = window.getSelection()?.toString();
-                  if (sel) document.execCommand("insertText", false, sel.toLowerCase());
+                  if (sel) {
+                    document.execCommand("insertText", false, sel.toLowerCase());
+                    updateLocal();
+                  }
                 }} 
                 className="px-2 h-8 flex items-center justify-center rounded-md hover:bg-background text-[10px]" title="minúsculas"
               >
-                min
+                aa
               </button>
             </div>
 
-            <button onClick={() => exec("removeFormat")} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background text-muted-foreground" title="Limpar Formatação"><Eraser className="w-4 h-4" /></button>
+            <button onMouseDown={e => e.preventDefault()} onClick={() => exec("removeFormat")} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background text-muted-foreground" title="Limpar Formatação"><Eraser className="w-4 h-4" /></button>
 
             <div className="w-px h-6 bg-border/60 mx-1 hidden sm:block" />
 
@@ -887,14 +902,14 @@ function ProjectNotesEditor({ client, onUpdate }: { client: Client; onUpdate: (n
             <div className="flex items-center gap-1 bg-background/40 p-1 rounded-lg border border-border/20">
               <span className="text-[9px] font-bold text-muted-foreground uppercase mr-1 ml-0.5">Texto</span>
               {NOTE_TEXT_COLORS.map(c => (
-                <button key={c.color} onClick={() => exec("foreColor", c.color)} className="w-4 h-4 rounded-full border border-white/20" style={{ backgroundColor: c.color }} />
+                <button key={c.color} onMouseDown={e => e.preventDefault()} onClick={() => exec("foreColor", c.color)} className="w-4 h-4 rounded-full border border-white/20" style={{ backgroundColor: c.color }} />
               ))}
             </div>
 
             <div className="flex items-center gap-1 bg-background/40 p-1 rounded-lg border border-border/20">
               <span className="text-[9px] font-bold text-muted-foreground uppercase mr-1 ml-0.5">Fundo</span>
               {NOTE_HIGHLIGHT_COLORS.map(c => (
-                <button key={c.color} onClick={() => exec("hiliteColor", c.color)} className="w-4 h-4 rounded border border-white/20" style={{ backgroundColor: c.color }} />
+                <button key={c.color} onMouseDown={e => e.preventDefault()} onClick={() => exec("hiliteColor", c.color)} className="w-4 h-4 rounded border border-white/20" style={{ backgroundColor: c.color }} />
               ))}
             </div>
 
@@ -903,11 +918,12 @@ function ProjectNotesEditor({ client, onUpdate }: { client: Client; onUpdate: (n
             {/* Final Actions */}
             <div className="flex items-center gap-1">
               <button 
+                onMouseDown={e => e.preventDefault()}
                 onClick={() => {
                   if (confirm("Apagar todo o conteúdo desta guia?")) {
                     if (editorRef.current) {
                       editorRef.current.innerHTML = "";
-                      handleNotesInput();
+                      persist();
                     }
                   }
                 }} 
@@ -917,6 +933,7 @@ function ProjectNotesEditor({ client, onUpdate }: { client: Client; onUpdate: (n
                 <Trash2 className="w-4 h-4" />
               </button>
               <button 
+                onMouseDown={e => e.preventDefault()}
                 onClick={() => {
                   if (editorRef.current) {
                     navigator.clipboard.writeText(editorRef.current.innerText);

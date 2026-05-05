@@ -2,7 +2,7 @@ import { Task } from "@/lib/types";
 import { Check, Pencil, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { fmtDate, todayISO } from "@/lib/cycles";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useFocoData } from "@/hooks/useFocoData";
 
 interface Props {

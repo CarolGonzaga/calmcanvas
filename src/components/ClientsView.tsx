@@ -3,7 +3,7 @@ import { useFocoData } from "@/hooks/useFocoData";
 import { Workspace } from "@/lib/types";
 import { ensureCycle, clientProgress, fmtDate, fmtDateLong, todayISO } from "@/lib/cycles";
 import { TaskItem } from "./TaskItem";
-import { Plus, Trash2, ChevronDown, ChevronRight, X, Cloud, CloudOff, Loader2, UploadCloud, FileText, File, Copy, Eraser, Settings, ArrowUp, ArrowDown, NotebookPen } from "lucide-react";
+import { Plus, Trash2, ChevronDown, ChevronRight, X, Cloud, CloudOff, Loader2, UploadCloud, FileText, File, Copy, Eraser, Settings, ArrowUp, ArrowDown, NotebookPen, Search, SortAsc, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGoogleDrive } from "@/hooks/useGoogleDrive";
 import { toast } from "sonner";
@@ -14,6 +14,8 @@ export function ClientsView({ workspace, initialOpenId }: { workspace: Workspace
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<"deadline" | "created">("deadline");
 
   const wsClients = clients.filter(c => c.workspace === workspace);
   
@@ -91,8 +93,52 @@ export function ClientsView({ workspace, initialOpenId }: { workspace: Workspace
         )}
       </div>
 
+      <div className="flex flex-col md:flex-row md:items-center gap-3 bg-muted/20 p-3 rounded-2xl border border-border/40">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Pesquisar projetos..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-background border border-border/60 focus:border-primary focus:outline-none text-sm"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setSortBy("deadline")}
+            className={cn(
+              "flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all border",
+              sortBy === "deadline" ? "bg-primary text-primary-foreground border-primary" : "bg-background text-muted-foreground border-border hover:bg-muted"
+            )}
+          >
+            <Clock className="w-3.5 h-3.5" /> Vencimento
+          </button>
+          <button
+            onClick={() => setSortBy("created")}
+            className={cn(
+              "flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all border",
+              sortBy === "created" ? "bg-primary text-primary-foreground border-primary" : "bg-background text-muted-foreground border-border hover:bg-muted"
+            )}
+          >
+            <Plus className="w-3.5 h-3.5" /> Recentes
+          </button>
+        </div>
+      </div>
+
       <div className="space-y-3">
-        {wsClients.map(c => {
+        {wsClients
+          .filter(c => c.name.toLowerCase().includes(search.toLowerCase()))
+          .sort((a, b) => {
+            if (sortBy === "deadline") {
+              const dateA = ensureCycle(a).end;
+              const dateB = ensureCycle(b).end;
+              return dateA.localeCompare(dateB);
+            } else {
+              return b.createdAt.localeCompare(a.createdAt);
+            }
+          })
+          .map(c => {
           const cycle = ensureCycle(c);
           const p = clientProgress(c.id, cycle.id);
           const cycleTasks = tasks

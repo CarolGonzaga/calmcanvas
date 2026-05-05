@@ -165,14 +165,14 @@ function QuickAddTask({ onAdd, cycleEnd }: { onAdd: (data: { name: string; dueDa
         onAdd({ name: v.trim(), dueDate: due || undefined, isReport, urgency });
         setV(""); setDue(""); setIsReport(false); setUrgency("whenever");
       }}
-      className="flex flex-col gap-2"
+      className="flex flex-col gap-3"
     >
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+      <div className="space-y-2">
         <input
           value={v}
           onChange={e => setV(e.target.value)}
           placeholder="Adicionar tarefa neste ciclo…"
-          className="flex-1 px-4 py-2.5 rounded-xl bg-card border border-border focus:border-primary focus:outline-none text-sm"
+          className="w-full px-4 py-2.5 rounded-xl bg-card border border-border focus:border-primary focus:outline-none text-sm transition-colors"
         />
         <input
           type="date"
@@ -180,39 +180,20 @@ function QuickAddTask({ onAdd, cycleEnd }: { onAdd: (data: { name: string; dueDa
           max={cycleEnd}
           onChange={e => setDue(e.target.value)}
           title="Prazo (opcional)"
-          className="px-3 py-2.5 rounded-xl bg-card border border-border focus:border-primary focus:outline-none text-sm"
+          className="w-full px-4 py-2.5 rounded-xl bg-card border border-border focus:border-primary focus:outline-none text-sm transition-colors"
         />
-        <button type="submit" className="px-3 py-2.5 rounded-xl bg-primary-soft text-primary hover:bg-primary hover:text-primary-foreground transition-colors">
-          <Plus className="w-4 h-4" />
-        </button>
       </div>
-      <div className="flex flex-wrap items-center gap-3 sm:gap-4 pl-1 mt-1">
-        <div className="flex items-center gap-2">
-          {urgencyOptions.map(opt => {
-            const [emoji, ...labelParts] = opt.label.split(" ");
-            const label = labelParts.join(" ");
-            const isActive = urgency === opt.value;
-            
-            return (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setUrgency(opt.value)}
-                className={cn(
-                  "flex flex-col items-center justify-center min-w-[64px] py-2 px-1 rounded-2xl border transition-all",
-                  isActive
-                    ? "border-primary/30 bg-primary/5 text-primary shadow-sm scale-105"
-                    : "border-border/40 text-muted-foreground hover:border-muted-foreground/40 hover:bg-muted/30"
-                )}
-              >
-                <span className="text-lg mb-0.5 filter drop-shadow-sm">{emoji}</span>
-                <span className="text-[10px] font-semibold leading-none">{label}</span>
-              </button>
-            );
-          })}
-        </div>
 
-        <label className="flex items-center gap-2 text-xs text-muted-foreground select-none cursor-pointer ml-auto bg-muted/30 px-3 py-2 rounded-xl border border-transparent hover:border-border transition-colors">
+      <div className="flex items-center gap-3">
+        <button 
+          type="submit" 
+          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary-soft text-primary hover:bg-primary hover:text-primary-foreground transition-all shadow-sm"
+        >
+          <Plus className="w-4 h-4" />
+          <span className="text-sm font-medium">Adicionar</span>
+        </button>
+
+        <label className="flex items-center gap-2 text-xs text-muted-foreground select-none cursor-pointer bg-muted/30 px-3 py-2.5 rounded-xl border border-transparent hover:border-border transition-colors h-[42px]">
           <input 
             type="checkbox" 
             checked={isReport} 
@@ -221,6 +202,31 @@ function QuickAddTask({ onAdd, cycleEnd }: { onAdd: (data: { name: string; dueDa
           />
           <span className="flex items-center gap-1">📋 relatório</span>
         </label>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2">
+        {urgencyOptions.map(opt => {
+          const [emoji, ...labelParts] = opt.label.split(" ");
+          const label = labelParts.join(" ");
+          const isActive = urgency === opt.value;
+          
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setUrgency(opt.value)}
+              className={cn(
+                "flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all",
+                isActive
+                  ? "border-primary/30 bg-primary/5 text-primary shadow-sm"
+                  : "border-border/40 text-muted-foreground hover:border-muted-foreground/40 hover:bg-muted/30"
+              )}
+            >
+              <span className="text-lg mb-0.5 filter drop-shadow-sm">{emoji}</span>
+              <span className="text-[10px] font-semibold leading-none">{label}</span>
+            </button>
+          );
+        })}
       </div>
     </form>
   );

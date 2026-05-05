@@ -1060,7 +1060,7 @@ const NOTE_TEXT_COLORS = [
 ];
 
 const NOTE_HIGHLIGHT_COLORS = [
-  { color: "#FDF2F8", label: "Rosa" },
+  { color: "#FBCFE8", label: "Rosa" },
   { color: "#FEF3C7", label: "Amarelo" },
   { color: "#D1FAE5", label: "Verde" },
   { color: "#DBEAFE", label: "Azul" },

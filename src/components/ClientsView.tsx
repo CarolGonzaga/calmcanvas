@@ -51,10 +51,17 @@ export function ClientsView({ workspace, initialOpenId }: { workspace: Workspace
           const cycleTasks = tasks
             .filter(t => t.cycleId === cycle.id)
             .sort((a, b) => {
-              if (!a.dueDate && !b.dueDate) return 0;
-              if (!a.dueDate) return 1;
-              if (!b.dueDate) return -1;
-              return a.dueDate < b.dueDate ? -1 : 1;
+              // 1. Sort by Date
+              if (a.dueDate !== b.dueDate) {
+                if (!a.dueDate) return 1;
+                if (!b.dueDate) return -1;
+                return a.dueDate < b.dueDate ? -1 : 1;
+              }
+              // 2. Sort by Urgency if dates are equal
+              const urgencyScore = { urgent: 0, today: 1, whenever: 2 };
+              const scoreA = urgencyScore[a.urgency as keyof typeof urgencyScore] ?? 2;
+              const scoreB = urgencyScore[b.urgency as keyof typeof urgencyScore] ?? 2;
+              return scoreA - scoreB;
             });
           const open = openId === c.id;
           return (

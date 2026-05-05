@@ -103,6 +103,10 @@ function ManageWorkspacesModal({ onClose }: { onClose: () => void }) {
               </div>
               <button
                 onClick={() => {
+                  if (workspaces.length <= 1) {
+                    alert("Você precisa ter pelo menos uma seção.");
+                    return;
+                  }
                   if (confirm(`Deseja mesmo remover "${w.name}"?`)) removeWorkspace(w.id);
                 }}
                 className="p-2 text-muted-foreground hover:text-destructive transition-colors rounded-lg hover:bg-destructive/10"

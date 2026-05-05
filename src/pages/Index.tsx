@@ -19,12 +19,14 @@ const Index = () => {
   const [workspace, setWorkspace] = useState<Workspace>("saficos");
   const { workspaces, syncAllCycles } = useFocoData();
   const [view, setView] = useState<View>("home");
+
+  // If current workspace was deleted, fall back to first available
   useEffect(() => {
-    if (!workspaces.find(w => w.id === workspace) && workspaces.length > 0) {
+    if (workspaces.length > 0 && !workspaces.find(w => w.id === workspace)) {
       setWorkspace(workspaces[0].id);
+      setView("home");
     }
   }, [workspaces, workspace]);
-
   // seed example data on first visit
   useEffect(() => {
     if (!store.isSeeded()) {

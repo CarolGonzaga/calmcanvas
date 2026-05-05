@@ -6,7 +6,7 @@ import { Workspace } from "@/lib/types";
 
 const greetings = ["Oi ❤️", "Olá!", "Que bom te ver", "Oi, Amor", "Hora de trabalhar, gatinha", "Bora, mulher!", "Ei, gatinha", "Pronta pra brilhar?", "Vamos trabalhar, meu amor", "Ei, amor da minha vida", "Oi, vidinha", "Bora trabalhar", "Oi, linda", "Oi, deusa", "Oi, rainha", "Oi, poderosa", "Oi, maravilhosa"];
 
-export function Dashboard({ workspace }: { workspace: Workspace }) {
+export function Dashboard({ workspace, onNavigateToProject }: { workspace: Workspace; onNavigateToProject?: (clientId: string) => void }) {
   const { clients, tasks, toggleTask } = useFocoData();
   const today = todayISO();
 
@@ -72,7 +72,7 @@ export function Dashboard({ workspace }: { workspace: Workspace }) {
           </h2>
           <div className="space-y-2">
             {urgent.map(t => (
-              <TaskItem key={t.id} task={t} clientName={clientName(t.clientId)} showClient onToggle={toggleTask} />
+              <TaskItem key={t.id} task={t} clientName={clientName(t.clientId)} showClient onToggle={toggleTask} onNavigate={() => t.clientId && onNavigateToProject?.(t.clientId)} />
             ))}
           </div>
         </section>
@@ -86,7 +86,7 @@ export function Dashboard({ workspace }: { workspace: Workspace }) {
           </h2>
           <div className="space-y-2">
             {todayTasks.map(t => (
-              <TaskItem key={t.id} task={t} clientName={clientName(t.clientId)} showClient onToggle={toggleTask} hideUrgency />
+              <TaskItem key={t.id} task={t} clientName={clientName(t.clientId)} showClient onToggle={toggleTask} hideUrgency onNavigate={() => t.clientId && onNavigateToProject?.(t.clientId)} />
             ))}
           </div>
         </section>
@@ -100,7 +100,7 @@ export function Dashboard({ workspace }: { workspace: Workspace }) {
           </h2>
           <div className="space-y-2">
             {upcoming.map(t => (
-              <TaskItem key={t.id} task={t} clientName={clientName(t.clientId)} showClient onToggle={toggleTask} hideUrgency />
+              <TaskItem key={t.id} task={t} clientName={clientName(t.clientId)} showClient onToggle={toggleTask} hideUrgency onNavigate={() => t.clientId && onNavigateToProject?.(t.clientId)} />
             ))}
           </div>
         </section>

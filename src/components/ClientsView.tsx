@@ -19,7 +19,7 @@ export function ClientsView({ workspace }: { workspace: Workspace }) {
 
   return (
     <div className="space-y-6 animate-fade-up">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl">Projetos</h1>
           <p className="text-muted-foreground text-sm mt-1">
@@ -28,7 +28,7 @@ export function ClientsView({ workspace }: { workspace: Workspace }) {
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-[var(--shadow-soft)]"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-[var(--shadow-soft)]"
         >
           <Plus className="w-4 h-4" /> Novo projeto
         </button>

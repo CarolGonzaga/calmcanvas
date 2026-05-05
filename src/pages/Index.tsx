@@ -69,7 +69,7 @@ const Index = () => {
     if (view === "reports") return <ReportsView workspace={workspace} />;
     if (view === "notes") return <NotesView workspace={workspace} title="Notas Livres" subtitle="Seu espaço livre. Anote, liste, respira." />;
     if (view === "receipts") return <ReceiptsView workspace={workspace} />;
-    return <Dashboard workspace={workspace} />;
+    return <Dashboard workspace={workspace} onNavigateToProject={(id) => setView("clients")} />;
   };
 
   const isDark = theme === "dark";
@@ -81,8 +81,8 @@ const Index = () => {
         <div className="container py-3 md:py-4 flex items-center justify-between gap-3">
           {/* Logo */}
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 md:w-9 md:h-9 rounded-xl bg-primary-soft flex items-center justify-center overflow-hidden shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" className="w-7 h-7 md:w-8 md:h-8">
+            <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-primary-soft flex items-center justify-center overflow-hidden shrink-0 shadow-sm border border-primary/10">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" className="w-7 h-7 md:w-8 md:h-8 translate-y-[-0.5px]">
                 <circle cx="32" cy="13" r="6" fill="#7C3AED" />
                 <path d="M24 23 Q32 19 40 23 L38 35 Q32 39 26 35 Z" fill="#8B5CF6" />
                 <path d="M26 35 Q18 39 14 43 Q18 45 26 41 Z" fill="#8B5CF6" />

@@ -12,6 +12,7 @@ interface Props {
   onRemove?: (id: string) => void;
   showClient?: boolean;
   hideUrgency?: boolean;
+  onNavigate?: () => void;
 }
 
 const urgencyConfig = {
@@ -22,7 +23,7 @@ const urgencyConfig = {
 
 const urgencyCycle: Array<Task["urgency"]> = ["urgent", "today", "whenever"];
 
-export function TaskItem({ task, clientName, onToggle, showClient, hideUrgency }: Props) {
+export function TaskItem({ task, clientName, onToggle, showClient, hideUrgency, onNavigate }: Props) {
   const [justChecked, setJustChecked] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const { updateTask } = useFocoData();
@@ -71,13 +72,14 @@ export function TaskItem({ task, clientName, onToggle, showClient, hideUrgency }
         </button>
 
         {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className={cn("text-sm font-medium leading-snug break-words", done && "line-through text-muted-foreground")}>
-            {task.isReport && "📋 "}{task.name}
-          </div>
+        <div className="flex-1 min-w-0" onClick={onNavigate} style={{ cursor: onNavigate ? 'pointer' : 'default' }}>
+          <div 
+            className={cn("text-sm md:text-base font-medium leading-snug break-words", done && "line-through text-muted-foreground")}
+            dangerouslySetInnerHTML={{ __html: task.name }}
+          />
           {(showClient && clientName) || task.dueDate ? (
             <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-xs text-muted-foreground">
-              {showClient && clientName && <span className="font-medium">{clientName}</span>}
+              {showClient && clientName && <span className="font-medium cursor-pointer hover:underline" onClick={(e) => { e.stopPropagation(); onNavigate?.(); }}>{clientName}</span>}
               {showClient && clientName && task.dueDate && <span>·</span>}
               {task.dueDate && (
                 <span className={cn(overdue && "text-warning-foreground font-medium")}>
@@ -134,6 +136,8 @@ function EditTaskModal({ task, onClose, onSave }: {
   const [name, setName] = useState(task.name);
   const [dueDate, setDueDate] = useState(task.dueDate || "");
   const [urgency, setUrgency] = useState<Task["urgency"]>(task.urgency || "whenever");
+  const [toolbarPos, setToolbarPos] = useState<{ x: number, y: number } | null>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
 
   const urgencyOptions: { value: "urgent" | "today" | "whenever"; label: string }[] = [
     { value: "urgent",   label: "🔴 Urgente"   },
@@ -141,9 +145,24 @@ function EditTaskModal({ task, onClose, onSave }: {
     { value: "whenever", label: "🟢 Sem pressa" },
   ];
 
+  const handleSelection = () => {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !editorRef.current?.contains(sel.anchorNode)) {
+      setToolbarPos(null);
+      return;
+    }
+    const rect = sel.getRangeAt(0).getBoundingClientRect();
+    setToolbarPos({ x: rect.left + rect.width / 2, y: rect.top - 40 });
+  };
+
+  const exec = (cmd: string, val?: string) => {
+    document.execCommand(cmd, false, val);
+    setName(editorRef.current?.innerHTML || "");
+  };
+
   return (
-    <div className="fixed inset-0 z-[60] bg-foreground/20 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-card rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 animate-fade-up">
+    <div className="fixed inset-0 z-[60] bg-foreground/20 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setToolbarPos(null)}>
+      <div className="bg-card rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 animate-fade-up relative" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h3 className="font-display text-xl">Editar Tarefa</h3>
           <button onClick={onClose} className="p-1 hover:bg-muted rounded-lg">
@@ -152,14 +171,33 @@ function EditTaskModal({ task, onClose, onSave }: {
         </div>
 
         <div className="space-y-4">
-          <label className="block">
+          <div className="block">
             <span className="text-sm font-medium">Nome da tarefa</span>
-            <input
-              value={name}
-              onChange={e => setName(e.target.value)}
-              className="mt-1 w-full px-4 py-2.5 rounded-xl bg-background border border-border focus:border-primary focus:outline-none"
-            />
-          </label>
+            <div className="relative mt-1">
+              <div
+                ref={editorRef}
+                contentEditable
+                onMouseUp={handleSelection}
+                onKeyUp={handleSelection}
+                onInput={e => setName(e.currentTarget.innerHTML)}
+                dangerouslySetInnerHTML={{ __html: task.name }}
+                className="w-full min-h-[80px] px-4 py-3 rounded-xl bg-background border border-border focus:border-primary focus:outline-none text-sm leading-relaxed"
+              />
+              {toolbarPos && (
+                <div 
+                  className="fixed z-[70] bg-popover border border-border shadow-md rounded-lg p-1 flex gap-0.5 items-center animate-in fade-in zoom-in duration-150"
+                  style={{ left: toolbarPos.x, top: toolbarPos.y, transform: 'translateX(-50%)' }}
+                >
+                  <button onClick={() => exec("bold")} className="p-1.5 hover:bg-muted rounded font-bold text-xs w-7 h-7 flex items-center justify-center">B</button>
+                  <button onClick={() => exec("italic")} className="p-1.5 hover:bg-muted rounded italic text-xs w-7 h-7 flex items-center justify-center">I</button>
+                  <button onClick={() => exec("foreColor", "#ef4444")} className="p-1.5 hover:bg-muted rounded text-red-500 text-xs w-7 h-7 flex items-center justify-center">A</button>
+                  <button onClick={() => exec("foreColor", "#3b82f6")} className="p-1.5 hover:bg-muted rounded text-blue-500 text-xs w-7 h-7 flex items-center justify-center">A</button>
+                  <button onClick={() => exec("foreColor", "#10b981")} className="p-1.5 hover:bg-muted rounded text-emerald-500 text-xs w-7 h-7 flex items-center justify-center">A</button>
+                  <button onClick={() => exec("removeFormat")} className="p-1.5 hover:bg-muted rounded text-xs w-7 h-7 flex items-center justify-center"><X className="w-3 h-3" /></button>
+                </div>
+              )}
+            </div>
+          </div>
 
           <label className="block">
             <span className="text-sm font-medium">Prazo</span>

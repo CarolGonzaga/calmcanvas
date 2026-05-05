@@ -4,10 +4,14 @@ import { Client, Cycle, Task, WorkspaceData } from "@/lib/types";
 import { fmtDateLong } from "@/lib/cycles";
 
 // Load receipts from localStorage
-function getReceipts(workspace: string): { id: string; label: string; url: string }[] {
+function getReceipts(workspace: string, clientId?: string): { id: string; label: string; url: string; clientId?: string }[] {
   try {
     const all = JSON.parse(localStorage.getItem("foco.receipts") || "{}");
-    return all[workspace] || [];
+    const wsReceipts = (all[workspace] || []) as any[];
+    if (clientId) {
+      return wsReceipts.filter(r => r.clientId === clientId);
+    }
+    return wsReceipts;
   } catch { return []; }
 }
 
@@ -38,7 +42,7 @@ export function ReportModal({ client, cycle, workspace, tasks, onClose }: Props)
         : (t.dueDate ? new Date(t.dueDate + "T12:00:00").toLocaleDateString("pt-BR") : "—"),
     }));
 
-  const receipts = getReceipts(workspace.id);
+  const receipts = getReceipts(workspace.id, client.id);
 
   const cycleEnd = new Date(cycle.end + "T12:00:00");
   const initialData: ReportData = {

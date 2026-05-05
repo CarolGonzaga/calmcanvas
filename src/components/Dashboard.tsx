@@ -51,8 +51,8 @@ export function Dashboard({ workspace }: { workspace: Workspace }) {
     totalPending === 0
       ? "Tudo em dia por aqui ✨"
       : totalPending <= 3
-        ? "Falta pouco, gatinha! ❤️"
-        : "Algumas tarefas estão te esperando";
+        ? "Só mais um pouquinho, tá? 😏"
+        : "Ainda não terminamos... 💁‍♀️";
 
   const clientName = (id?: string) => clients.find(c => c.id === id)?.name;
 

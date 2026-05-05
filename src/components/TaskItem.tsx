@@ -16,7 +16,7 @@ interface Props {
 
 const urgencyConfig = {
   urgent:   { label: "🔴 Urgente",  bg: "bg-red-500/10",    text: "text-red-600 dark:text-red-400"    },
-  today:    { label: "🟡 Pra hoje", bg: "bg-yellow-500/10", text: "text-yellow-600 dark:text-yellow-400" },
+  today:    { label: "🟡 Normal", bg: "bg-yellow-500/10", text: "text-yellow-600 dark:text-yellow-400" },
   whenever: { label: "🟢 Sem pressa", bg: "bg-emerald-500/10", text: "text-emerald-600 dark:text-emerald-400" },
 } as const;
 
@@ -137,7 +137,7 @@ function EditTaskModal({ task, onClose, onSave }: {
 
   const urgencyOptions: { value: "urgent" | "today" | "whenever"; label: string }[] = [
     { value: "urgent",   label: "🔴 Urgente"   },
-    { value: "today",    label: "🟡 Pra hoje"  },
+    { value: "today",    label: "🟡 Normal"  },
     { value: "whenever", label: "🟢 Sem pressa" },
   ];
 

@@ -20,12 +20,12 @@ export function Dashboard({ workspace }: { workspace: Workspace }) {
 
   const excludeUrgentIds = new Set(urgent.map(t => t.id));
 
-  // 2. TAREFAS DO DIA: não urgentes, com dueDate = hoje OU marcadas como "today"
+  // 2. TAREFAS DO DIA: não urgentes, com dueDate = hoje
   const todayTasks = tasks.filter(t =>
     t.workspace === workspace &&
     t.status !== "done" &&
     !excludeUrgentIds.has(t.id) &&
-    (t.dueDate === today || t.urgency === "today")
+    t.dueDate === today
   );
 
   const excludeTodayIds = new Set([...excludeUrgentIds, ...todayTasks.map(t => t.id)]);

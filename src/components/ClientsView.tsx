@@ -153,7 +153,7 @@ function QuickAddTask({ onAdd, cycleEnd }: { onAdd: (data: { name: string; dueDa
 
   const urgencyOptions: { value: "urgent" | "today" | "whenever"; label: string }[] = [
     { value: "urgent",   label: "🔴 Urgente"   },
-    { value: "today",    label: "🟡 Pra hoje"  },
+    { value: "today",    label: "🟡 Normal"  },
     { value: "whenever", label: "🟢 Sem pressa" },
   ];
 

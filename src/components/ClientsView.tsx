@@ -236,7 +236,10 @@ export function ClientsView({ workspace, initialOpenId }: { workspace: Workspace
                         <Settings className="w-3.5 h-3.5" /> Editar
                       </button>
                       <button
-                        onClick={() => updateClient(c.id, { isArchived: !c.isArchived })}
+                        onClick={() => {
+                          updateClient(c.id, { isArchived: !c.isArchived });
+                          setOpenId(null);
+                        }}
                         className="hover:text-amber-500 transition-colors flex items-center gap-1"
                       >
                         <Archive className="w-3.5 h-3.5" /> {c.isArchived ? "Desarquivar" : "Arquivar"}

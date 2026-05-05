@@ -608,7 +608,12 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
   };
 
   // Sync editor when active tab changes (imperative, no dangerouslySetInnerHTML)
+  const isFirstTabSync = useRef(true);
   useEffect(() => {
+    if (isFirstTabSync.current) {
+      isFirstTabSync.current = false;
+      return;
+    }
     if (editorRef.current) {
       editorRef.current.innerHTML = tabs[activeTab] || "";
     }

@@ -28,9 +28,7 @@ export function ClientsView({ workspace, initialOpenId }: { workspace: Workspace
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl">Projetos</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Cada projeto tem seu próprio ciclo mensal automático.
-          </p>
+
         </div>
         <button
           onClick={() => setShowForm(true)}

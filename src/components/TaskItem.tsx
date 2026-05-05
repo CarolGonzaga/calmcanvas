@@ -47,7 +47,7 @@ export function TaskItem({ task, clientName, onToggle, showClient }: Props) {
     <>
       <div
         className={cn(
-          "group flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-300",
+          "group flex items-start gap-3 px-4 py-3 rounded-xl border transition-all duration-300",
           done
             ? "bg-muted/40 border-transparent"
             : overdue
@@ -55,10 +55,11 @@ export function TaskItem({ task, clientName, onToggle, showClient }: Props) {
             : "bg-card border-border/60 hover:border-primary/40 hover:shadow-[var(--shadow-soft)]"
         )}
       >
+        {/* Checkbox */}
         <button
           onClick={handle}
           className={cn(
-            "w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
+            "mt-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
             done
               ? "bg-success border-success text-success-foreground"
               : "border-muted-foreground/30 hover:border-primary"
@@ -68,13 +69,14 @@ export function TaskItem({ task, clientName, onToggle, showClient }: Props) {
           {done && <Check className={cn("w-3.5 h-3.5", justChecked && "animate-check")} strokeWidth={3} />}
         </button>
 
+        {/* Content */}
         <div className="flex-1 min-w-0">
-          <div className={cn("text-sm font-medium truncate", done && "line-through text-muted-foreground")}>
+          <div className={cn("text-sm font-medium leading-snug break-words", done && "line-through text-muted-foreground")}>
             {task.isReport && "📋 "}{task.name}
           </div>
           {(showClient && clientName) || task.dueDate ? (
-            <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
-              {showClient && clientName && <span>{clientName}</span>}
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-xs text-muted-foreground">
+              {showClient && clientName && <span className="font-medium">{clientName}</span>}
               {showClient && clientName && task.dueDate && <span>·</span>}
               {task.dueDate && (
                 <span className={cn(overdue && "text-warning-foreground font-medium")}>
@@ -83,16 +85,15 @@ export function TaskItem({ task, clientName, onToggle, showClient }: Props) {
               )}
             </div>
           ) : null}
-        </div>
 
-        <div className="flex items-center gap-2">
+          {/* Urgency + edit — shown below title on mobile */}
           {!done && (
-            <>
+            <div className="flex items-center gap-2 mt-2">
               <button
                 onClick={cycleUrgency}
                 title="Clique para mudar urgência"
                 className={cn(
-                  "shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full transition-all",
+                  "text-[10px] font-semibold px-2 py-0.5 rounded-full transition-all shrink-0",
                   uc.bg, uc.text
                 )}
               >
@@ -100,12 +101,12 @@ export function TaskItem({ task, clientName, onToggle, showClient }: Props) {
               </button>
               <button
                 onClick={() => setIsEditing(true)}
-                className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted text-muted-foreground"
+                className="p-1.5 rounded-lg transition-colors hover:bg-muted text-muted-foreground opacity-60 hover:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                 title="Editar tarefa"
               >
                 <Pencil className="w-3.5 h-3.5" />
               </button>
-            </>
+            </div>
           )}
         </div>
       </div>

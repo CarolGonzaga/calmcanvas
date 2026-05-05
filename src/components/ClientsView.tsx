@@ -255,6 +255,31 @@ function QuickAddTask({ onAdd, cycleEnd, showRecurring = false }: {
         />
       </div>
 
+      <div className="grid grid-cols-3 gap-2">
+        {urgencyOptions.map(opt => {
+          const [emoji, ...labelParts] = opt.label.split(" ");
+          const label = labelParts.join(" ");
+          const isActive = urgency === opt.value;
+          
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setUrgency(opt.value)}
+              className={cn(
+                "flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all",
+                isActive
+                  ? "border-primary/30 bg-primary/5 text-primary shadow-sm"
+                  : "border-border/40 text-muted-foreground hover:border-muted-foreground/40 hover:bg-muted/30"
+              )}
+            >
+              <span className="text-lg mb-0.5 filter drop-shadow-sm">{emoji}</span>
+              <span className="text-[10px] font-semibold leading-none">{label}</span>
+            </button>
+          );
+        })}
+      </div>
+
       <div className="flex items-center gap-2">
         <button 
           type="submit" 
@@ -289,31 +314,6 @@ function QuickAddTask({ onAdd, cycleEnd, showRecurring = false }: {
             </label>
           )}
         </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-2">
-        {urgencyOptions.map(opt => {
-          const [emoji, ...labelParts] = opt.label.split(" ");
-          const label = labelParts.join(" ");
-          const isActive = urgency === opt.value;
-          
-          return (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => setUrgency(opt.value)}
-              className={cn(
-                "flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all",
-                isActive
-                  ? "border-primary/30 bg-primary/5 text-primary shadow-sm"
-                  : "border-border/40 text-muted-foreground hover:border-muted-foreground/40 hover:bg-muted/30"
-              )}
-            >
-              <span className="text-lg mb-0.5 filter drop-shadow-sm">{emoji}</span>
-              <span className="text-[10px] font-semibold leading-none">{label}</span>
-            </button>
-          );
-        })}
       </div>
     </form>
   );

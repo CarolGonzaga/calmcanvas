@@ -767,65 +767,81 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
             data-placeholder={`Anote links, referências e informações em '${activeTab}'...`}
             className="w-full flex-1 overflow-y-auto leading-relaxed px-4 py-3 text-sm focus:outline-none bg-background text-foreground"
           />
-          {/* Formatting toolbar */}
-          <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 bg-muted/50 border-t border-border">
+          {/* Formatting toolbar - optimized for touch/typing with larger gaps */}
+          <div className="flex flex-wrap items-center gap-4 px-3 py-2 bg-muted/50 border-t border-border">
+            
             {/* Bold / Italic / Underline */}
-            <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => execNote("bold")} title="Negrito"
-              className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-muted transition-colors text-foreground/70 hover:text-foreground">
-              <span className="font-bold text-xs">B</span>
-            </button>
-            <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => execNote("italic")} title="Itálico"
-              className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-muted transition-colors text-foreground/70 hover:text-foreground">
-              <span className="italic text-xs">I</span>
-            </button>
-            <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => execNote("underline")} title="Sublinhado"
-              className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-muted transition-colors text-foreground/70 hover:text-foreground">
-              <span className="underline text-xs">U</span>
-            </button>
+            <div className="flex items-center gap-1">
+              <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => execNote("bold")} title="Negrito"
+                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background hover:shadow-sm transition-all text-foreground/70 hover:text-foreground">
+                <span className="font-bold text-sm">B</span>
+              </button>
+              <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => execNote("italic")} title="Itálico"
+                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background hover:shadow-sm transition-all text-foreground/70 hover:text-foreground">
+                <span className="italic text-sm">I</span>
+              </button>
+              <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => execNote("underline")} title="Sublinhado"
+                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background hover:shadow-sm transition-all text-foreground/70 hover:text-foreground">
+                <span className="underline text-sm">U</span>
+              </button>
+            </div>
 
-            <span className="w-px h-4 bg-border mx-0.5 shrink-0" />
+            <span className="w-px h-5 bg-border shrink-0 hidden sm:block" />
 
             {/* UPPER / lower */}
-            <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => applyCaseNote(true)} title="TUDO MAIÚSCULO"
-              className="h-7 px-2 flex items-center justify-center rounded-md hover:bg-muted transition-colors text-foreground/70 hover:text-foreground text-[10px] font-semibold">
-              AA
-            </button>
-            <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => applyCaseNote(false)} title="tudo minúsculo"
-              className="h-7 px-2 flex items-center justify-center rounded-md hover:bg-muted transition-colors text-foreground/70 hover:text-foreground text-[10px] font-semibold lowercase">
-              aa
-            </button>
+            <div className="flex items-center gap-1">
+              <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => applyCaseNote(true)} title="TUDO MAIÚSCULO"
+                className="h-8 px-2.5 flex items-center justify-center rounded-lg hover:bg-background hover:shadow-sm transition-all text-foreground/70 hover:text-foreground text-[11px] font-semibold">
+                AA
+              </button>
+              <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => applyCaseNote(false)} title="tudo minúsculo"
+                className="h-8 px-2.5 flex items-center justify-center rounded-lg hover:bg-background hover:shadow-sm transition-all text-foreground/70 hover:text-foreground text-[11px] font-semibold lowercase">
+                aa
+              </button>
+            </div>
 
-            <span className="w-px h-4 bg-border mx-0.5 shrink-0" />
+            <span className="w-px h-5 bg-border shrink-0 hidden sm:block" />
 
-            <span className="text-[9px] text-muted-foreground font-medium px-1 shrink-0">Cor</span>
-            {NOTE_TEXT_COLORS.map(({ color, label }) => (
-              <button key={color} type="button"
-                onMouseDown={e => e.preventDefault()}
-                onClick={() => execNote("foreColor", color)}
-                title={`Texto: ${label}`}
-                className="w-5 h-5 rounded-full border-2 border-background hover:scale-110 transition-transform shrink-0 shadow-sm ring-1 ring-black/10"
-                style={{ backgroundColor: color }}
-              />
-            ))}
+            {/* Colors */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider shrink-0">Cor</span>
+              <div className="flex items-center gap-1.5">
+                {NOTE_TEXT_COLORS.map(({ color, label }) => (
+                  <button key={color} type="button"
+                    onMouseDown={e => e.preventDefault()}
+                    onClick={() => execNote("foreColor", color)}
+                    title={`Texto: ${label}`}
+                    className="w-6 h-6 rounded-full border-2 border-background hover:scale-110 transition-transform shrink-0 shadow-sm ring-1 ring-black/5"
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+            </div>
 
-            <span className="w-px h-4 bg-border mx-0.5 shrink-0" />
+            <span className="w-px h-5 bg-border shrink-0 hidden md:block" />
 
-            <span className="text-[9px] text-muted-foreground font-medium px-1 shrink-0">Fundo</span>
-            {NOTE_HIGHLIGHT_COLORS.map(({ color, label }) => (
-              <button key={color} type="button"
-                onMouseDown={e => e.preventDefault()}
-                onClick={() => execNote("hiliteColor", color)}
-                title={`Grifar: ${label}`}
-                className="w-5 h-5 rounded-full border-2 border-background hover:scale-110 transition-transform shrink-0 shadow-sm ring-1 ring-black/10"
-                style={{ backgroundColor: color }}
-              />
-            ))}
+            {/* Highlights */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider shrink-0">Fundo</span>
+              <div className="flex items-center gap-1.5">
+                {NOTE_HIGHLIGHT_COLORS.map(({ color, label }) => (
+                  <button key={color} type="button"
+                    onMouseDown={e => e.preventDefault()}
+                    onClick={() => execNote("hiliteColor", color)}
+                    title={`Grifar: ${label}`}
+                    className="w-6 h-6 rounded-full border-2 border-background hover:scale-110 transition-transform shrink-0 shadow-sm ring-1 ring-black/5"
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+            </div>
 
-            <span className="w-px h-4 bg-border mx-0.5 shrink-0" />
+            <div className="flex-1" />
 
+            {/* Remove Format */}
             <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => execNote("removeFormat")} title="Remover formatação"
-              className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
-              <X className="w-3 h-3" />
+              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground ml-auto">
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>

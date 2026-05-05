@@ -536,9 +536,8 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
       }
     }
     setTabs(parsed);
-    // Also sync the editor — activeTab doesn't change on load, so the
-    // activeTab effect won't re-fire, we must set innerHTML here too.
-    if (editorRef.current) {
+    // Only update innerHTML if the user is NOT actively typing in the editor
+    if (editorRef.current && document.activeElement !== editorRef.current) {
       editorRef.current.innerHTML = parsed[activeTab] || parsed[Object.keys(parsed)[0]] || "";
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -597,14 +596,6 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
     e.preventDefault();
     const plain = e.clipboardData.getData("text/plain");
     document.execCommand("insertText", false, plain);
-  };
-
-  // Enter → <br> to avoid browser inserting <div> with white bg
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      document.execCommand("insertLineBreak");
-    }
   };
 
   // Sync editor when active tab changes (imperative, no dangerouslySetInnerHTML)
@@ -761,7 +752,6 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
             suppressContentEditableWarning
             onInput={handleNotesInput}
             onPaste={handlePaste}
-            onKeyDown={handleKeyDown}
             data-placeholder={`Anote links, referências e informações em '${activeTab}'...`}
             className="w-full min-h-[260px] leading-relaxed px-4 py-3 text-sm focus:outline-none bg-background text-foreground"
           />

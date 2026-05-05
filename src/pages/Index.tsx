@@ -6,7 +6,7 @@ import { ClientsView } from "@/components/ClientsView";
 import { CalendarView } from "@/components/CalendarView";
 import { ReportsView } from "@/components/ReportsView";
 import { NotesView } from "@/components/NotesView";
-import { Home, Users, Calendar, FileText, Heart, Cloud, CloudOff, Loader2 } from "lucide-react";
+import { Home, Users, Calendar, FileText, Cloud, CloudOff, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { store } from "@/lib/storage";
 import { useFocoData } from "@/hooks/useFocoData";
@@ -27,6 +27,7 @@ const Index = () => {
       setView("home");
     }
   }, [workspaces, workspace]);
+
   // seed example data on first visit
   useEffect(() => {
     if (!store.isSeeded()) {
@@ -80,14 +81,28 @@ const Index = () => {
     return <Dashboard workspace={workspace} />;
   };
 
-
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border/60 bg-card/50 backdrop-blur-sm sticky top-0 z-40">
         <div className="container py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-primary-soft flex items-center justify-center">
-              <Heart className="w-4 h-4 text-primary" fill="currentColor" />
+            <div className="w-9 h-9 rounded-xl bg-primary-soft flex items-center justify-center overflow-hidden">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" className="w-8 h-8">
+                {/* Head */}
+                <circle cx="32" cy="13" r="6" fill="#7C3AED" />
+                {/* Body */}
+                <path d="M24 23 Q32 19 40 23 L38 35 Q32 39 26 35 Z" fill="#8B5CF6" />
+                {/* Left leg */}
+                <path d="M26 35 Q18 39 14 43 Q18 45 26 41 Z" fill="#8B5CF6" />
+                {/* Right leg */}
+                <path d="M38 35 Q46 39 50 43 Q46 45 38 41 Z" fill="#8B5CF6" />
+                {/* Left hand */}
+                <circle cx="17" cy="39" r="4" fill="#A78BFA" />
+                {/* Right hand */}
+                <circle cx="47" cy="39" r="4" fill="#A78BFA" />
+                {/* Aura */}
+                <circle cx="32" cy="13" r="9" stroke="#C4B5FD" strokeWidth="1.5" fill="none" />
+              </svg>
             </div>
             <div>
               <h1 className="font-display text-lg leading-none">Foco</h1>

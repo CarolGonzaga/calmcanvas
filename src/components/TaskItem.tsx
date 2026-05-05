@@ -11,6 +11,7 @@ interface Props {
   onToggle: (id: string) => void;
   onRemove?: (id: string) => void;
   showClient?: boolean;
+  hideUrgency?: boolean;
 }
 
 const urgencyConfig = {
@@ -21,7 +22,7 @@ const urgencyConfig = {
 
 const urgencyCycle: Array<Task["urgency"]> = ["urgent", "today", "whenever"];
 
-export function TaskItem({ task, clientName, onToggle, showClient }: Props) {
+export function TaskItem({ task, clientName, onToggle, showClient, hideUrgency }: Props) {
   const [justChecked, setJustChecked] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const { updateTask } = useFocoData();
@@ -87,7 +88,7 @@ export function TaskItem({ task, clientName, onToggle, showClient }: Props) {
           ) : null}
 
           {/* Urgency + edit — shown below title on mobile */}
-          {!done && (
+          {!done && !hideUrgency && (
             <div className="flex items-center gap-2 mt-2">
               <button
                 onClick={cycleUrgency}

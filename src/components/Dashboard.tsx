@@ -1,47 +1,52 @@
 import { useFocoData } from "@/hooks/useFocoData";
 import { TaskItem } from "./TaskItem";
-import { getOverdueTasks, getUpcomingDeadlines, fmtDate, ensureCycle, clientProgress } from "@/lib/cycles";
-import { AlertTriangle, Sparkles } from "lucide-react";
+import { fmtDate, ensureCycle, clientProgress, todayISO } from "@/lib/cycles";
+import { AlertTriangle, CalendarDays, Clock } from "lucide-react";
 import { Workspace } from "@/lib/types";
 
 const greetings = ["Oi ❤️", "Olá!", "Que bom te ver", "Oi, Amor", "Hora de trabalhar, gatinha", "Bora, mulher!", "Ei, gatinha", "Pronta pra brilhar?", "Vamos trabalhar, meu amor", "Ei, amor da minha vida", "Oi, vidinha", "Bora trabalhar", "Oi, linda", "Oi, deusa", "Oi, rainha", "Oi, poderosa", "Oi, maravilhosa"];
 
 export function Dashboard({ workspace }: { workspace: Workspace }) {
   const { clients, tasks, toggleTask } = useFocoData();
+  const today = todayISO();
 
-  const filterWs = (t: any) => t.workspace === workspace;
-
-  // Urgentes: tarefas com urgency="urgent" ainda não concluídas
+  // 1. URGENTES DO DIA: urgency="urgent" E dueDate = hoje (ou sem data, mas dueDate <= hoje)
   const urgent = tasks.filter(t =>
     t.workspace === workspace &&
     t.status !== "done" &&
-    t.urgency === "urgent"
+    t.urgency === "urgent" &&
+    (!t.dueDate || t.dueDate <= today)
   );
 
-  // Pra hoje: tarefas com urgency="today" ainda não concluídas
-  const forToday = tasks.filter(t =>
+  const excludeUrgentIds = new Set(urgent.map(t => t.id));
+
+  // 2. TAREFAS DO DIA: não urgentes, com dueDate = hoje OU marcadas como "today"
+  const todayTasks = tasks.filter(t =>
     t.workspace === workspace &&
     t.status !== "done" &&
-    t.urgency === "today"
+    !excludeUrgentIds.has(t.id) &&
+    (t.dueDate === today || t.urgency === "today")
   );
 
-  // To avoid duplication, we filter out tasks already in urgent or forToday
-  const excludeIds = new Set([...urgent.map(t => t.id), ...forToday.map(t => t.id)]);
+  const excludeTodayIds = new Set([...excludeUrgentIds, ...todayTasks.map(t => t.id)]);
 
-  const overdue = getOverdueTasks()
-    .filter(filterWs)
-    .filter(t => !excludeIds.has(t.id));
-    
-  const upcoming = getUpcomingDeadlines(7)
-    .filter(filterWs)
-    .filter(t => !excludeIds.has(t.id));
+  // 3. PRÓXIMOS DIAS: dueDate > hoje e <= +7 dias, sem pressa ou sem urgência
+  const upcoming = tasks.filter(t => {
+    if (
+      t.workspace !== workspace ||
+      t.status === "done" ||
+      excludeTodayIds.has(t.id) ||
+      !t.dueDate
+    ) return false;
+    return t.dueDate > today;
+  }).sort((a, b) => (a.dueDate! < b.dueDate! ? -1 : 1));
 
   const wsClients = clients.filter(c => c.workspace === workspace);
 
   const greeting = greetings[Math.floor(Math.random() * greetings.length)];
   const date = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
 
-  const totalPending = urgent.length + forToday.length + overdue.length;
+  const totalPending = urgent.length + todayTasks.length;
   const friendly =
     totalPending === 0
       ? "Tudo em dia por aqui ✨"
@@ -59,7 +64,7 @@ export function Dashboard({ workspace }: { workspace: Workspace }) {
         <p className="text-muted-foreground mt-2">{friendly}</p>
       </div>
 
-      {/* Urgentes */}
+      {/* 🔴 Urgentes do dia */}
       {urgent.length > 0 && (
         <section>
           <h2 className="text-xs uppercase tracking-wider mb-3 font-semibold flex items-center gap-1.5 text-red-500">
@@ -73,45 +78,35 @@ export function Dashboard({ workspace }: { workspace: Workspace }) {
         </section>
       )}
 
-      {/* Pra hoje (urgency=today) */}
-      {forToday.length > 0 && (
+      {/* 📅 Tarefas do dia (sem mostrar tags de urgência) */}
+      {todayTasks.length > 0 && (
         <section>
-          <h2 className="text-xs uppercase tracking-wider mb-3 font-semibold flex items-center gap-1.5 text-yellow-500">
-            🟡 Pra hoje
+          <h2 className="text-xs uppercase tracking-wider mb-3 font-semibold flex items-center gap-1.5 text-muted-foreground">
+            <Clock className="w-3.5 h-3.5" /> Tarefas de hoje
           </h2>
           <div className="space-y-2">
-            {forToday.map(t => (
-              <TaskItem key={t.id} task={t} clientName={clientName(t.clientId)} showClient onToggle={toggleTask} />
+            {todayTasks.map(t => (
+              <TaskItem key={t.id} task={t} clientName={clientName(t.clientId)} showClient onToggle={toggleTask} hideUrgency />
             ))}
           </div>
         </section>
       )}
 
-      {/* Overdue */}
-      {overdue.length > 0 && (
-        <section>
-          <h2 className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-medium">Esperando por você</h2>
-          <div className="space-y-2">
-            {overdue.map(t => (
-              <TaskItem key={t.id} task={t} clientName={clientName(t.clientId)} showClient onToggle={toggleTask} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Upcoming */}
+      {/* 📆 Próximos dias (sem tags) */}
       {upcoming.length > 0 && (
         <section>
-          <h2 className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-medium">Nos próximos dias</h2>
+          <h2 className="text-xs uppercase tracking-wider mb-3 font-semibold flex items-center gap-1.5 text-muted-foreground">
+            <CalendarDays className="w-3.5 h-3.5" /> Próximos dias
+          </h2>
           <div className="space-y-2">
             {upcoming.map(t => (
-              <TaskItem key={t.id} task={t} clientName={clientName(t.clientId)} showClient onToggle={toggleTask} />
+              <TaskItem key={t.id} task={t} clientName={clientName(t.clientId)} showClient onToggle={toggleTask} hideUrgency />
             ))}
           </div>
         </section>
       )}
 
-      {/* Client progress */}
+      {/* Progresso por projeto */}
       {wsClients.length > 0 && (
         <section>
           <h2 className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-medium">Progresso por projeto</h2>

@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 export function CalendarView({ workspace }: { workspace: Workspace }) {
   const { tasks, clients, cycles } = useFocoData();
   const [ref, setRef] = useState(new Date());
+  const [hoveredDay, setHoveredDay] = useState<string | null>(null);
 
   const year = ref.getFullYear();
   const month = ref.getMonth();
@@ -21,7 +22,6 @@ export function CalendarView({ workspace }: { workspace: Workspace }) {
 
   const wsTasks = tasks.filter(t => t.workspace === workspace && t.dueDate);
   const wsClients = clients.filter(c => c.workspace === workspace);
-  // cycle boundaries for current view
   const wsCycles = cycles.filter(c => wsClients.some(cl => cl.id === c.clientId));
 
   const eventsForDate = (d: Date) => {
@@ -64,24 +64,58 @@ export function CalendarView({ workspace }: { workspace: Workspace }) {
             if (!d) return <div key={i} className="aspect-square" />;
             const iso = d.toISOString().slice(0, 10);
             const isToday = iso === today;
+            const isHovered = hoveredDay === iso;
             const { taskEvents, cycleStarts, cycleEnds } = eventsForDate(d);
             const hasReport = taskEvents.some(t => t.isReport);
-            const hasTasks = taskEvents.some(t => !t.isReport);
+            const regularTasks = taskEvents.filter(t => !t.isReport);
+            const hasTasks = regularTasks.length > 0;
             const hasCycle = cycleStarts.length > 0 || cycleEnds.length > 0;
             return (
               <div
                 key={i}
                 className={cn(
-                  "aspect-square rounded-xl p-1.5 text-xs flex flex-col gap-1 transition-colors",
+                  "aspect-square rounded-xl p-1 text-xs flex flex-col transition-colors cursor-default relative group",
                   isToday ? "bg-primary-soft border border-primary/40" : "hover:bg-muted/40"
                 )}
+                onMouseEnter={() => setHoveredDay(iso)}
+                onMouseLeave={() => setHoveredDay(null)}
               >
-                <span className={cn("font-medium", isToday && "text-primary")}>{d.getDate()}</span>
-                <div className="flex flex-wrap gap-1 mt-auto">
-                  {hasReport && <span title="Relatório" className="w-1.5 h-1.5 rounded-full bg-warning" />}
-                  {hasTasks && <span title="Tarefa" className="w-1.5 h-1.5 rounded-full bg-primary" />}
-                  {hasCycle && <span title="Ciclo" className="w-1.5 h-1.5 rounded-full bg-secondary-foreground/60" />}
-                </div>
+                <span className={cn("font-medium leading-none", isToday && "text-primary")}>{d.getDate()}</span>
+                
+                {/* Task name pills — visible on hover */}
+                {(hasTasks || hasReport) && (
+                  <div className="mt-1 flex flex-col gap-0.5 overflow-hidden">
+                    {regularTasks.slice(0, 2).map(t => (
+                      <span
+                        key={t.id}
+                        title={t.name}
+                        className={cn(
+                          "block text-[9px] leading-tight px-1 py-0.5 rounded truncate",
+                          t.urgency === "urgent" ? "bg-red-500/15 text-red-600" :
+                          t.urgency === "today" ? "bg-yellow-500/15 text-yellow-700" :
+                          "bg-primary/10 text-primary"
+                        )}
+                      >
+                        {t.name}
+                      </span>
+                    ))}
+                    {regularTasks.length > 2 && (
+                      <span className="text-[9px] text-muted-foreground px-1">+{regularTasks.length - 2}</span>
+                    )}
+                    {hasReport && (
+                      <span className="block text-[9px] leading-tight px-1 py-0.5 rounded truncate bg-warning/15 text-warning-foreground">
+                        📋 Relatório
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Dots for cycle markers */}
+                {hasCycle && (
+                  <div className="mt-auto flex gap-0.5">
+                    <span title="Ciclo" className="w-1.5 h-1.5 rounded-full bg-secondary-foreground/60" />
+                  </div>
+                )}
               </div>
             );
           })}
@@ -108,8 +142,8 @@ export function CalendarView({ workspace }: { workspace: Workspace }) {
               return (
                 <div key={t.id} className="soft-card p-3 flex items-center gap-3 text-sm">
                   <span className="text-xs text-muted-foreground w-16 shrink-0">{fmtDate(t.dueDate!)}</span>
-                  <span className="flex-1">{t.isReport ? "📋 " : "✓ "}{t.name}</span>
-                  {c && <span className="text-xs text-muted-foreground">{c.name}</span>}
+                  <span className="flex-1 break-words">{t.isReport ? "📋 " : "✓ "}{t.name}</span>
+                  {c && <span className="text-xs text-muted-foreground shrink-0">{c.name}</span>}
                 </div>
               );
             })}

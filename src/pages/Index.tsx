@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 import { Workspace } from "@/lib/types";
 import { WorkspaceTabs } from "@/components/WorkspaceTabs";
 import { Dashboard } from "@/components/Dashboard";
@@ -6,16 +7,18 @@ import { ClientsView } from "@/components/ClientsView";
 import { CalendarView } from "@/components/CalendarView";
 import { ReportsView } from "@/components/ReportsView";
 import { NotesView } from "@/components/NotesView";
-import { Home, Users, Calendar, FileText, Cloud, CloudOff, Loader2 } from "lucide-react";
+import { ReceiptsView } from "@/components/ReceiptsView";
+import { Home, Users, Calendar, FileText, Link as LinkIcon, Cloud, CloudOff, Loader2, Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { store } from "@/lib/storage";
 import { useFocoData } from "@/hooks/useFocoData";
 import { useGoogleDrive } from "@/hooks/useGoogleDrive";
 
-type View = "home" | "clients" | "calendar" | "reports" | "notes";
+type View = "home" | "clients" | "calendar" | "reports" | "notes" | "receipts";
 
 const Index = () => {
   const { driveService, isSyncing, login, logout } = useGoogleDrive();
+  const { theme, setTheme } = useTheme();
   const [workspace, setWorkspace] = useState<Workspace>("saficos");
   const { workspaces, syncAllCycles } = useFocoData();
   const [view, setView] = useState<View>("home");
@@ -65,6 +68,7 @@ const Index = () => {
     { id: "calendar" as View, label: "Calendário", icon: Calendar },
     { id: "reports" as View, label: "Relatórios", icon: FileText },
     { id: "notes" as View, label: "Notas livres", icon: FileText },
+    { id: "receipts" as View, label: "Comprovantes", icon: LinkIcon },
   ];
 
   // reset view when workspace changes if invalid
@@ -78,8 +82,11 @@ const Index = () => {
     if (view === "calendar") return <CalendarView workspace={workspace} />;
     if (view === "reports") return <ReportsView workspace={workspace} />;
     if (view === "notes") return <NotesView workspace={workspace} title="Notas Livres" subtitle="Seu espaço livre. Anote, liste, respira." />;
+    if (view === "receipts") return <ReceiptsView workspace={workspace} />;
     return <Dashboard workspace={workspace} />;
   };
+
+  const isDark = theme === "dark";
 
   return (
     <div className="min-h-screen bg-background">
@@ -88,19 +95,12 @@ const Index = () => {
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-primary-soft flex items-center justify-center overflow-hidden">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" className="w-8 h-8">
-                {/* Head */}
                 <circle cx="32" cy="13" r="6" fill="#7C3AED" />
-                {/* Body */}
                 <path d="M24 23 Q32 19 40 23 L38 35 Q32 39 26 35 Z" fill="#8B5CF6" />
-                {/* Left leg */}
                 <path d="M26 35 Q18 39 14 43 Q18 45 26 41 Z" fill="#8B5CF6" />
-                {/* Right leg */}
                 <path d="M38 35 Q46 39 50 43 Q46 45 38 41 Z" fill="#8B5CF6" />
-                {/* Left hand */}
                 <circle cx="17" cy="39" r="4" fill="#A78BFA" />
-                {/* Right hand */}
                 <circle cx="47" cy="39" r="4" fill="#A78BFA" />
-                {/* Aura */}
                 <circle cx="32" cy="13" r="9" stroke="#C4B5FD" strokeWidth="1.5" fill="none" />
               </svg>
             </div>
@@ -110,6 +110,15 @@ const Index = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {/* Theme toggle */}
+            <button
+              onClick={() => setTheme(isDark ? "light" : "dark")}
+              className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              title={isDark ? "Tema claro" : "Tema escuro"}
+            >
+              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+
             {isSyncing && <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />}
             {driveService ? (
               <button onClick={logout} className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-full bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 transition-colors">

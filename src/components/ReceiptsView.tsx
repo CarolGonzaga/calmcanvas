@@ -28,7 +28,7 @@ function saveReceipts(workspace: Workspace, items: Receipt[]) {
     const all = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
     all[workspace] = items;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
-  } catch {}
+  } catch (e) { console.error(e); }
 }
 
 function uid() { return Math.random().toString(36).slice(2); }

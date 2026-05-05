@@ -9,7 +9,8 @@ interface Props {
   onChange: (w: Workspace) => void;
 }
 
-const iconsMap: Record<string, any> = {
+import React from "react";
+const iconsMap: Record<string, React.ReactNode> = {
   BookHeart,
   Users,
   Sparkles,

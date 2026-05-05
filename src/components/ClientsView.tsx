@@ -439,7 +439,7 @@ function NewClientModal({ workspace, onClose, onSave }: {
 }
 
 
-function EditClientModal({ client, onClose, onSave }: { client: any; onClose: () => void; onSave: (data: { name: string; startDate: string; endDate?: string; taskTemplate: string[] }) => void; }) {
+function EditClientModal({ client, onClose, onSave }: { client: Client; onClose: () => void; onSave: (data: { name: string; startDate: string; endDate?: string; taskTemplate: string[] }) => void; }) {
   const [name, setName] = useState(client.name);
   const [startDate, setStartDate] = useState(client.startDate);
   const [endDate, setEndDate] = useState(client.endDate || '');
@@ -491,7 +491,7 @@ Reunião com cliente" />
 
 function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (notes: string) => void }) {
   const { driveService, appFolderId } = useGoogleDrive();
-  const [files, setFiles] = useState<any[]>([]);
+  const [files, setFiles] = useState<Array<{ id: string; name: string; webViewLink?: string; iconLink?: string }>>([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -544,6 +544,7 @@ function ProjectDriveFiles({ client, onUpdate }: { client: Client, onUpdate: (no
     if (driveService && appFolderId) {
       loadFiles();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [driveService, appFolderId, client.name]);
 
   const loadFiles = async () => {

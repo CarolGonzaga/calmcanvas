@@ -27,6 +27,7 @@ const DriveContext = createContext<DriveContextType>({
   logout: () => {},
 });
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useGoogleDrive = () => useContext(DriveContext);
 
 /** Persists token to localStorage with a 55-minute expiry (tokens last 60min). */
@@ -81,7 +82,7 @@ export function GoogleDriveProvider({ children }: { children: React.ReactNode })
         if (db.workspaces) store.setWorkspaces(db.workspaces);
         if (db.notes) {
           Object.keys(db.notes).forEach(ws => {
-            store.setNotes(ws as any, db.notes[ws]);
+            store.setNotes(ws as import('@/lib/types').Workspace, db.notes[ws]);
           });
         }
         emit();
@@ -103,6 +104,7 @@ export function GoogleDriveProvider({ children }: { children: React.ReactNode })
     if (savedToken) {
       initWithToken(savedToken);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const login = useGoogleLogin({
@@ -131,7 +133,7 @@ export function GoogleDriveProvider({ children }: { children: React.ReactNode })
         cycles: store.getCycles(),
         reportsSent: store.getReportsSent(),
         workspaces: store.getWorkspaces(),
-        notes: store.getWorkspaces().reduce((acc, ws) => { acc[ws.id] = store.getNotes(ws.id); return acc; }, {} as Record<string, any>)
+        notes: store.getWorkspaces().reduce((acc, ws) => { acc[ws.id] = store.getNotes(ws.id); return acc; }, {} as Record<string, string>)
       };
       await ds.saveDatabase(folderId, db);
     } catch(e) {
@@ -143,7 +145,7 @@ export function GoogleDriveProvider({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     if (!driveService || !appFolderId) return;
-    let timeout: any;
+    let timeout: ReturnType<typeof setTimeout>;
     
     const listener = () => {
       clearTimeout(timeout);

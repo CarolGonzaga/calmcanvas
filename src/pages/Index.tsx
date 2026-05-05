@@ -42,12 +42,14 @@ const Index = () => {
       store.setClients([
         { id: "demo-1", name: "Marca Florescer", startDate: start1.toISOString().slice(0, 10), taskTemplate: ["Planejamento mensal", "Pauta de conteúdo", "4 posts feed", "Legendas", "Stories semanais", "2 Reels", "Agendamento", "Interações", "Métricas", "Reunião"], workspace: ws, createdAt: new Date().toISOString() },
         { id: "demo-2", name: "Estúdio Lua", startDate: start2.toISOString().slice(0, 10), taskTemplate: ["Pauta", "3 posts feed", "Stories", "1 Reel", "Agendamento", "Métricas"], workspace: ws, createdAt: new Date().toISOString() },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ] as any);
       store.markSeeded();
       syncAllCycles();
     } else {
       syncAllCycles();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const navItems = [
@@ -61,6 +63,7 @@ const Index = () => {
 
   useEffect(() => {
     if (!navItems.some(i => i.id === view)) setView("home");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspace]);
 
   const renderView = () => {

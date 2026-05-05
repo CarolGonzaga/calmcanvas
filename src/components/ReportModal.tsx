@@ -7,7 +7,7 @@ import { fmtDateLong } from "@/lib/cycles";
 function getReceipts(workspace: string, clientId?: string): { id: string; label: string; url: string; clientId?: string }[] {
   try {
     const all = JSON.parse(localStorage.getItem("foco.receipts") || "{}");
-    const wsReceipts = (all[workspace] || []) as any[];
+    const wsReceipts = (all[workspace] || []) as Array<{ id: string; label: string; url: string; clientId?: string }>;
     if (clientId) {
       return wsReceipts.filter(r => r.clientId === clientId);
     }
@@ -57,7 +57,7 @@ export function ReportModal({ client, cycle, workspace, tasks, onClose }: Props)
   const [data, setData] = useState<ReportData>(initialData);
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
 
-  const set = (field: keyof ReportData, value: any) =>
+  const set = <K extends keyof ReportData>(field: K, value: ReportData[K]) =>
     setData(d => ({ ...d, [field]: value }));
 
   const updateTask = (idx: number, name: string, completedAt: string) =>
@@ -137,7 +137,7 @@ export function ReportModal({ client, cycle, workspace, tasks, onClose }: Props)
   // ─── DOCX export ─────────────────────────────────────────────
   const exportDOCX = async () => {
     const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = await import("docx");
-    const children: any[] = [
+    const children: Array<unknown> = [
       new Paragraph({
         text: data.monthYear.toUpperCase(),
         heading: HeadingLevel.HEADING_3,
@@ -173,7 +173,7 @@ export function ReportModal({ client, cycle, workspace, tasks, onClose }: Props)
               children: [new TextRun({ text: `   Concluída em ${t.completedAt}`, color: "888888", size: 18 })],
             })
           : null,
-      ]).filter(Boolean) as any[],
+      ]).filter(Boolean) as Array<unknown>,
       new Paragraph({ text: "" }),
     ];
 

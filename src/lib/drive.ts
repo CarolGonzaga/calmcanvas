@@ -31,7 +31,7 @@ export class DriveService {
   }
 
   async createFolder(name: string, parentId?: string): Promise<string> {
-    const metadata: any = { name, mimeType: 'application/vnd.google-apps.folder' };
+    const metadata: Record<string, unknown> = { name, mimeType: 'application/vnd.google-apps.folder' };
     if (parentId) metadata.parents = [parentId];
     
     const res = await this.fetch(DRIVE_API, {
@@ -62,7 +62,7 @@ export class DriveService {
     return res.files || [];
   }
 
-  async saveDatabase(appFolderId: string, data: any): Promise<void> {
+  async saveDatabase(appFolderId: string, data: unknown): Promise<void> {
     const fileName = "foco-database.json";
     const q = `name='${fileName}' and '${appFolderId}' in parents and trashed=false`;
     const searchRes = await this.fetch(`${DRIVE_API}?q=${encodeURIComponent(q)}&fields=files(id)`);
@@ -97,7 +97,7 @@ export class DriveService {
     if (!res.ok) throw new Error(await res.text());
   }
 
-  async loadDatabase(appFolderId: string): Promise<any | null> {
+  async loadDatabase(appFolderId: string): Promise<Record<string, unknown> | null> {
     const fileName = "foco-database.json";
     const q = `name='${fileName}' and '${appFolderId}' in parents and trashed=false`;
     const searchRes = await this.fetch(`${DRIVE_API}?q=${encodeURIComponent(q)}&fields=files(id)`);

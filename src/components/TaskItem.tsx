@@ -59,7 +59,10 @@ export function TaskItem({ task, clientName, onToggle, showClient, hideUrgency, 
       >
         {/* Checkbox */}
         <button
-          onClick={handle}
+          onClick={(e) => {
+            e.stopPropagation();
+            handle();
+          }}
           className={cn(
             "mt-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
             done
@@ -93,7 +96,10 @@ export function TaskItem({ task, clientName, onToggle, showClient, hideUrgency, 
           {!done && !hideUrgency && (
             <div className="flex items-center gap-2 mt-2">
               <button
-                onClick={cycleUrgency}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  cycleUrgency();
+                }}
                 title="Clique para mudar urgência"
                 className={cn(
                   "text-[10px] font-semibold px-2 py-0.5 rounded-full transition-all shrink-0",
@@ -103,7 +109,10 @@ export function TaskItem({ task, clientName, onToggle, showClient, hideUrgency, 
                 {uc.label}
               </button>
               <button
-                onClick={() => setIsEditing(true)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsEditing(true);
+                }}
                 className="p-1.5 rounded-lg transition-colors hover:bg-muted text-muted-foreground opacity-60 hover:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                 title="Editar tarefa"
               >
@@ -133,7 +142,6 @@ function EditTaskModal({ task, onClose, onSave }: {
   onClose: () => void;
   onSave: (data: Partial<Task>) => void;
 }) {
-  const [name, setName] = useState(task.name);
   const [dueDate, setDueDate] = useState(task.dueDate || "");
   const [urgency, setUrgency] = useState<Task["urgency"]>(task.urgency || "whenever");
   const [toolbarPos, setToolbarPos] = useState<{ x: number, y: number } | null>(null);
@@ -157,7 +165,6 @@ function EditTaskModal({ task, onClose, onSave }: {
 
   const exec = (cmd: string, val?: string) => {
     document.execCommand(cmd, false, val);
-    setName(editorRef.current?.innerHTML || "");
   };
 
   return (
@@ -179,7 +186,6 @@ function EditTaskModal({ task, onClose, onSave }: {
                 contentEditable
                 onMouseUp={handleSelection}
                 onKeyUp={handleSelection}
-                onInput={e => setName(e.currentTarget.innerHTML)}
                 dangerouslySetInnerHTML={{ __html: task.name }}
                 className="w-full min-h-[80px] px-4 py-3 rounded-xl bg-background border border-border focus:border-primary focus:outline-none text-sm leading-relaxed"
               />
@@ -236,7 +242,10 @@ function EditTaskModal({ task, onClose, onSave }: {
             Cancelar
           </button>
           <button
-            onClick={() => onSave({ name, dueDate: dueDate || undefined, urgency })}
+            onClick={() => {
+              const newName = editorRef.current?.innerHTML || task.name;
+              onSave({ name: newName, dueDate: dueDate || undefined, urgency });
+            }}
             className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
           >
             Salvar
